@@ -1,0 +1,240 @@
+.lessons-page {
+  min-height: 100vh;
+  background: var(--light-bg);
+}
+
+.lessons-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.lessons-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.back-btn:hover {
+  background: var(--secondary-teal);
+  transform: translateY(-2px);
+}
+
+.lessons-header h1 {
+  font-size: 2rem;
+  color: var(--light-text);
+  margin-bottom: 0.5rem;
+}
+
+.lessons-header p {
+  color: var(--neutral-gray);
+  font-size: 1.1rem;
+}
+
+.category-filter {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--primary-green);
+  background: transparent;
+  color: var(--primary-green);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 600;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--primary-green);
+  color: white;
+}
+
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.lesson-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.lesson-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.lesson-card.completed {
+  border-color: var(--primary-green);
+}
+
+.lesson-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-green), var(--secondary-teal));
+  color: white;
+}
+
+.lesson-category {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.completed-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.lesson-content {
+  padding: 1.5rem;
+}
+
+.lesson-content h3 {
+  margin: 0 0 0.75rem 0;
+  color: var(--light-text);
+  font-size: 1.3rem;
+}
+
+.lesson-content p {
+  margin: 0 0 1.5rem 0;
+  color: var(--neutral-gray);
+  line-height: 1.6;
+}
+
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--neutral-gray);
+  font-size: 0.9rem;
+}
+
+.difficulty-badge {
+  background: var(--accent-yellow);
+  color: #333;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.lesson-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.start-lesson-btn {
+  width: 100%;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.start-lesson-btn:hover {
+  background: var(--secondary-teal);
+  transform: translateY(-2px);
+}
+
+/* Dark Theme */
+[data-theme="dark"] .lessons-page {
+  background: var(--dark-bg);
+}
+
+[data-theme="dark"] .lesson-card {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .lessons-header h1,
+[data-theme="dark"] .lesson-content h3 {
+  color: white;
+}
+
+[data-theme="dark"] .lessons-header p,
+[data-theme="dark"] .lesson-content p,
+[data-theme="dark"] .meta-item {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .lesson-footer {
+  border-top-color: #404040;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .lessons-container {
+    padding: 1rem;
+  }
+  
+  .back-btn {
+    position: static;
+    margin-bottom: 1rem;
+  }
+  
+  .lessons-header {
+    text-align: left;
+  }
+  
+  .lessons-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-filter {
+    gap: 0.5rem;
+  }
+  
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}

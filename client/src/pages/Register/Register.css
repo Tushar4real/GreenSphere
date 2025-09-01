@@ -1,0 +1,369 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--secondary-teal), var(--primary-green));
+  position: relative;
+  overflow: hidden;
+  padding: 2rem 0;
+}
+
+.theme-toggle-register {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.8rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1.2rem;
+  z-index: 10;
+}
+
+.theme-toggle-register:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(180deg);
+}
+
+.register-content {
+  background: var(--light-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeIn 0.8s ease-out;
+  z-index: 2;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.logo-icon {
+  font-size: 2.5rem;
+}
+
+.logo h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin: 0;
+}
+
+.tagline {
+  color: var(--neutral-gray);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.register-form h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--light-text);
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--neutral-gray);
+  font-size: 1.1rem;
+  z-index: 2;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-left: 3rem;
+  border: 2px solid #e9ecef;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--light-bg);
+  color: var(--light-text);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.input-wrapper .form-input {
+  padding-right: 3rem;
+}
+
+.form-input[name="role"] {
+  padding-left: 1rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--neutral-gray);
+  cursor: pointer;
+  font-size: 1.1rem;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: var(--primary-green);
+}
+
+.register-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+.register-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  padding: 0.8rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  text-align: center;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.success-message {
+  background: rgba(40, 167, 69, 0.1);
+  color: var(--primary-green);
+  padding: 0.8rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  text-align: center;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.register-footer p {
+  color: var(--neutral-gray);
+  margin: 0;
+}
+
+.login-link {
+  color: var(--primary-green);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.login-link:hover {
+  color: var(--secondary-teal);
+  text-decoration: underline;
+}
+
+/* Floating Background Elements */
+.register-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-element {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.element-1 {
+  top: 5%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.element-2 {
+  top: 15%;
+  right: 15%;
+  animation-delay: 1s;
+}
+
+.element-3 {
+  bottom: 35%;
+  left: 20%;
+  animation-delay: 2s;
+}
+
+.element-4 {
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 3s;
+}
+
+.element-5 {
+  top: 45%;
+  left: 5%;
+  animation-delay: 4s;
+}
+
+.element-6 {
+  top: 60%;
+  right: 5%;
+  animation-delay: 5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+  }
+}
+
+/* Dark Theme */
+[data-theme="dark"] .register-content {
+  background: var(--dark-bg);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .logo h1 {
+  color: var(--primary-green);
+}
+
+[data-theme="dark"] .register-form h2 {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .form-input {
+  background: var(--dark-bg);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .form-input:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 1rem 0;
+  }
+  
+  .register-content {
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 15px;
+    max-height: 95vh;
+  }
+  
+  .theme-toggle-register {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.6rem;
+  }
+  
+  .logo h1 {
+    font-size: 1.5rem;
+  }
+  
+  .logo-icon {
+    font-size: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-content {
+    padding: 1.5rem;
+    margin: 0.5rem;
+  }
+  
+  .logo h1 {
+    font-size: 1.3rem;
+  }
+  
+  .register-form h2 {
+    font-size: 1.3rem;
+  }
+  
+  .floating-element {
+    font-size: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions .btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-secondary {
+  background: var(--neutral-gray);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}

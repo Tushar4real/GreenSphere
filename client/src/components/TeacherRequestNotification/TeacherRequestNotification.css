@@ -1,0 +1,237 @@
+.teacher-request-notification {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  color: var(--light-text);
+  padding: 0.75rem;
+  margin: 2rem 0 1rem 0;
+  border-radius: 8px;
+  opacity: 0.8;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notification-icon {
+  background: var(--primary-green);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 50%;
+  font-size: 1rem;
+}
+
+.notification-text {
+  flex: 1;
+}
+
+.notification-text h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--neutral-gray);
+}
+
+.notification-text p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--neutral-gray);
+}
+
+.request-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.request-btn:hover {
+  background: var(--secondary-teal);
+}
+
+.teacher-request-modal .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.teacher-request-modal .modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.teacher-request-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.teacher-request-modal .modal-header h3 {
+  margin: 0;
+  color: var(--light-text);
+}
+
+.teacher-request-modal .modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--neutral-gray);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.teacher-request-modal .modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.request-form {
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--light-text);
+}
+
+.form-group textarea,
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: var(--transition);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-group textarea:focus,
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--primary-green);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #218838;
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--neutral-gray);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+/* Dark Theme */
+[data-theme="dark"] .teacher-request-notification {
+  background: #2a2a2a;
+  border-color: #404040;
+}
+
+[data-theme="dark"] .notification-text h4,
+[data-theme="dark"] .notification-text p {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .teacher-request-modal .modal-content {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .teacher-request-modal .modal-header {
+  border-bottom-color: #404040;
+}
+
+[data-theme="dark"] .teacher-request-modal .modal-header h3,
+[data-theme="dark"] .form-group label {
+  color: white;
+}
+
+[data-theme="dark"] .form-group textarea,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group input {
+  background: #333;
+  border-color: #404040;
+  color: white;
+}
+
+[data-theme="dark"] .form-group textarea:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .form-group input:focus {
+  background: #404040;
+}
+
+@media (max-width: 768px) {
+  .notification-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .teacher-request-modal .modal-content {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}

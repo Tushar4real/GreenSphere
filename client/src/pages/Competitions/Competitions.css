@@ -1,0 +1,337 @@
+.competitions-page {
+  min-height: 100vh;
+  background: var(--light-bg);
+}
+
+.competitions-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.competitions-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.competitions-header h1 {
+  font-size: 2rem;
+  color: var(--light-text);
+  margin-bottom: 0.5rem;
+}
+
+.competitions-header p {
+  color: var(--neutral-gray);
+  font-size: 1.1rem;
+}
+
+.competitions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.competition-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  border: 2px solid transparent;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.competition-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.competition-card.active {
+  border-color: var(--primary-green);
+}
+
+.competition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.competition-status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #f8f9fa;
+  color: var(--neutral-gray);
+}
+
+.competition-icon {
+  font-size: 2rem;
+  color: var(--accent-yellow);
+}
+
+.competition-content h3 {
+  margin: 0 0 1rem 0;
+  color: var(--light-text);
+  font-size: 1.3rem;
+}
+
+.competition-content p {
+  color: var(--neutral-gray);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.competition-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--neutral-gray);
+  font-size: 0.9rem;
+}
+
+.competition-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--primary-green);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #218838;
+}
+
+.btn-secondary {
+  background: var(--neutral-gray);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.back-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+.back-btn:hover {
+  background: var(--secondary-teal);
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.leaderboard-header h1 {
+  font-size: 2rem;
+  color: var(--light-text);
+  margin-bottom: 0.5rem;
+}
+
+.leaderboard-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.school-leaderboard,
+.individual-leaderboard {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.school-leaderboard h2,
+.individual-leaderboard h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--light-text);
+  text-align: center;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  transition: var(--transition);
+}
+
+.leaderboard-item.top-three {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #333;
+}
+
+.leaderboard-item:hover {
+  transform: translateY(-2px);
+}
+
+.rank {
+  font-size: 1.2rem;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+.school-info,
+.student-info {
+  flex: 1;
+}
+
+.school-info h3,
+.student-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  color: var(--light-text);
+}
+
+.leaderboard-item.top-three .school-info h3,
+.leaderboard-item.top-three .student-info h3 {
+  color: #333;
+}
+
+.school-info p,
+.student-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--neutral-gray);
+}
+
+.leaderboard-item.top-three .school-info p,
+.leaderboard-item.top-three .student-info p {
+  color: #555;
+}
+
+.points {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+.leaderboard-item.top-three .points {
+  color: #333;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--neutral-gray);
+}
+
+.empty-state svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--light-text);
+}
+
+/* Dark Theme */
+[data-theme="dark"] .competitions-page {
+  background: var(--dark-bg);
+}
+
+[data-theme="dark"] .competition-card,
+[data-theme="dark"] .school-leaderboard,
+[data-theme="dark"] .individual-leaderboard {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .competitions-header h1,
+[data-theme="dark"] .leaderboard-header h1,
+[data-theme="dark"] .competition-content h3,
+[data-theme="dark"] .school-leaderboard h2,
+[data-theme="dark"] .individual-leaderboard h2,
+[data-theme="dark"] .school-info h3,
+[data-theme="dark"] .student-info h3,
+[data-theme="dark"] .empty-state h3 {
+  color: white;
+}
+
+[data-theme="dark"] .competitions-header p,
+[data-theme="dark"] .competition-content p,
+[data-theme="dark"] .meta-item,
+[data-theme="dark"] .school-info p,
+[data-theme="dark"] .student-info p,
+[data-theme="dark"] .empty-state {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .leaderboard-item {
+  background: #333;
+}
+
+[data-theme="dark"] .competition-status {
+  background: #333;
+  color: #b0b0b0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .competitions-container {
+    padding: 1rem;
+  }
+  
+  .competitions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .leaderboard-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .competition-actions {
+    flex-direction: column;
+  }
+  
+  .competition-meta {
+    gap: 0.5rem;
+  }
+}
