@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaNewspaper, FaExternalLinkAlt, FaClock } from 'react-icons/fa';
+import { FiArrowLeft } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import apiService from '../../services/apiService';
@@ -112,6 +113,9 @@ const News = () => {
       <Navbar />
       <div className="news-container">
         <div className="news-header">
+          <button className="back-btn" onClick={() => window.history.back()}>
+            <FiArrowLeft /> Back to Dashboard
+          </button>
           <h1><FaNewspaper /> Environmental News</h1>
           <p>Stay updated with the latest environmental developments</p>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaMedal, FaStar, FaLock } from 'react-icons/fa';
+import { FiArrowLeft } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import apiService from '../../services/apiService';
@@ -114,6 +115,9 @@ const Badges = () => {
       <Navbar />
       <div className="badges-container">
         <div className="badges-header">
+          <button className="back-btn" onClick={() => window.history.back()}>
+            <FiArrowLeft /> Back to Dashboard
+          </button>
           <h1><FaMedal /> Your Badges</h1>
           <p>Collect badges by completing eco-friendly activities!</p>
         </div>

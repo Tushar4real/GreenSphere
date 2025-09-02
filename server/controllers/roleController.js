@@ -96,12 +96,16 @@ exports.approveTeacherRequest = async (req, res) => {
 
 exports.addTeacher = async (req, res) => {
   try {
-    const { email, name, subject } = req.body;
+    const { email, name, password, fieldOfStudy, school } = req.body;
+    
+    if (!email || !name || !password || !fieldOfStudy) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
     
     let user = await User.findOne({ email });
     if (user) {
-      if (user.role === 'teacher') {
-        return res.status(400).json({ error: 'User is already a teacher' });
+      if (user.role === 'teacher' || user.role === 'admin') {
+        return res.status(400).json({ error: 'User already has elevated privileges' });
       }
       user.role = 'teacher';
       user.teacherRequest = {
@@ -109,20 +113,29 @@ exports.addTeacher = async (req, res) => {
         requestedAt: new Date(),
         reviewedAt: new Date(),
         reviewedBy: req.user.userId,
-        subject: subject || 'General'
+        fieldOfStudy
       };
+      if (school) user.school = school;
     } else {
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(password, 12);
+      
       user = new User({
         email,
         name,
-        cognitoId: `manual-${Date.now()}`,
+        password: hashedPassword,
+        cognitoId: `teacher-${Date.now()}`,
         role: 'teacher',
+        school: school || 'GreenSphere Academy',
+        points: 0,
+        level: 'Educator',
+        isActive: true,
         teacherRequest: {
           status: 'approved',
           requestedAt: new Date(),
           reviewedAt: new Date(),
           reviewedBy: req.user.userId,
-          subject: subject || 'General'
+          fieldOfStudy
         }
       });
     }
@@ -135,11 +148,13 @@ exports.addTeacher = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        fieldOfStudy
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Add teacher error:', error);
+    res.status(500).json({ error: error.message || 'Failed to add teacher' });
   }
 };
 

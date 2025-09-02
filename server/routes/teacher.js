@@ -15,4 +15,10 @@ router.post('/quiz', auth, teacherController.createQuiz);
 // Get teacher's quizzes
 router.get('/quizzes', auth, teacherController.getTeacherQuizzes);
 
+// Request teacher role
+router.post('/request-role', auth, teacherController.requestTeacherRole);
+
+// Get teacher requests (admin only)
+router.get('/requests', auth, teacherController.getTeacherRequests);
+
 module.exports = router;

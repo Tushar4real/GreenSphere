@@ -129,6 +129,9 @@ const RealWorldTasks = () => {
       
       <div className="tasks-container">
         <div className="tasks-header">
+          <button className="back-btn" onClick={() => window.history.back()}>
+            <FiArrowLeft /> Back to Dashboard
+          </button>
           <h1>🌍 Real World Tasks</h1>
           <p>Complete environmental tasks and earn exclusive badges</p>
         </div>

@@ -1,25 +1,18 @@
 import React, { useState } from 'react';
-import { FiUser, FiMail, FiLock, FiPlus } from 'react-icons/fi';
+import { FiUser, FiMail, FiKey, FiBook, FiX, FiUserPlus } from 'react-icons/fi';
+import apiService from '../../services/apiService';
 import './AddTeacher.css';
 
-const AddTeacher = ({ onTeacherAdded }) => {
+const AddTeacher = ({ onClose, onTeacherAdded }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    fieldOfStudy: '',
+    school: 'GreenSphere Academy'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
-    setSuccess('');
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,96 +20,183 @@ const AddTeacher = ({ onTeacherAdded }) => {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/roles/add-teacher`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess('Teacher added successfully!');
-        setFormData({ name: '', email: '', password: '' });
-        if (onTeacherAdded) onTeacherAdded(data.user);
-      } else {
-        setError(data.error || 'Failed to add teacher');
+      await apiService.admin.addTeacher(formData);
+      
+      if (onTeacherAdded) {
+        onTeacherAdded();
       }
+      
+      onClose();
     } catch (error) {
-      console.error('Error adding teacher:', error);
-      setError('Network error. Please try again.');
+      setError(error.response?.data?.error || 'Failed to add teacher');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const generatePassword = () => {
+    const password = Math.random().toString(36).slice(-8) + '123!';
+    setFormData({ ...formData, password });
+  };
+
   return (
-    <div className="add-teacher">
-      <div className="add-teacher-header">
-        <h3><FiPlus /> Add Teacher Manually</h3>
-      </div>
+    <div className="modal-overlay">
+      <div className="add-teacher-modal">
+        <div className="modal-header">
+          <h3><FiUserPlus /> Add New Teacher</h3>
+          <button className="close-btn" onClick={onClose}>
+            <FiX />
+          </button>
+        </div>
 
-      <form onSubmit={handleSubmit} className="add-teacher-form">
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        <form onSubmit={handleSubmit} className="add-teacher-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="name">
+                <FiUser /> Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Teacher's full name"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="email">
+                <FiMail /> Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="teacher@school.edu"
+                required
+              />
+            </div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="name">Full Name</label>
-          <div className="input-wrapper">
-            <FiUser className="input-icon" />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="password">
+                <FiKey /> Password
+              </label>
+              <div className="password-input">
+                <input
+                  type="text"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter password"
+                  required
+                />
+                <button 
+                  type="button" 
+                  className="generate-btn"
+                  onClick={generatePassword}
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="fieldOfStudy">
+                <FiBook /> Field of Study
+              </label>
+              <select
+                id="fieldOfStudy"
+                name="fieldOfStudy"
+                value={formData.fieldOfStudy}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select field</option>
+                <option value="Environmental Science">Environmental Science</option>
+                <option value="Biology">Biology</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Geography">Geography</option>
+                <option value="Earth Science">Earth Science</option>
+                <option value="Sustainability Studies">Sustainability Studies</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="school">School/Institution</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="school"
+              name="school"
+              value={formData.school}
               onChange={handleChange}
-              placeholder="Enter teacher's full name"
-              required
+              placeholder="School or institution name"
             />
           </div>
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <div className="input-wrapper">
-            <FiMail className="input-icon" />
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter teacher's email"
-              required
-            />
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn-cancel"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="btn-submit"
+              disabled={loading}
+            >
+              {loading ? 'Adding...' : 'Add Teacher'}
+            </button>
+          </div>
+        </form>
+
+        <div className="teacher-codes-info">
+          <h4>Valid Teacher Codes:</h4>
+          <div className="codes-grid">
+            <div className="code-item">
+              <strong>TEACH2024</strong> - General Teaching
+            </div>
+            <div className="code-item">
+              <strong>ENVIRO123</strong> - Environmental Science
+            </div>
+            <div className="code-item">
+              <strong>BIO2024</strong> - Biology
+            </div>
+            <div className="code-item">
+              <strong>CHEM2024</strong> - Chemistry
+            </div>
+            <div className="code-item">
+              <strong>GEO2024</strong> - Geography
+            </div>
+            <div className="code-item">
+              <strong>SUSTAIN2024</strong> - Sustainability Studies
+            </div>
           </div>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="password">Temporary Password</label>
-          <div className="input-wrapper">
-            <FiLock className="input-icon" />
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create temporary password"
-              minLength="8"
-              required
-            />
-          </div>
-        </div>
-
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Adding Teacher...' : 'Add Teacher'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

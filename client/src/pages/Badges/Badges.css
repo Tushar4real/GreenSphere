@@ -6,12 +6,31 @@
 .badges-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 100px 20px 40px;
+  padding: 6rem 20px 40px;
 }
 
 .badges-header {
-  text-align: center;
   margin-bottom: 40px;
+}
+
+.back-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.back-btn:hover {
+  background: var(--secondary-teal);
+  transform: translateY(-2px);
 }
 
 .badges-header h1 {
@@ -22,11 +41,13 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
+  text-align: center;
 }
 
 .badges-header p {
   color: #666;
   font-size: 1.1rem;
+  text-align: center;
 }
 
 .badges-stats {

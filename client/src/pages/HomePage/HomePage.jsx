@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiBookOpen, FiAward, FiUsers, FiTrendingUp, FiTarget, FiSettings, FiBell } from 'react-icons/fi';
@@ -11,6 +11,25 @@ import './HomePage.css';
 const HomePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [currentQuote, setCurrentQuote] = useState(0);
+  
+  const motivationalQuotes = [
+    "Every small action creates ripples of change",
+    "Be the change you wish to see in the world",
+    "The Earth does not belong to us, we belong to Earth",
+    "Small steps lead to big environmental victories",
+    "Your planet needs you - start today!",
+    "Green choices today, brighter tomorrow",
+    "Together we can heal our beautiful planet",
+    "Nature is not a place to visit, it is home"
+  ];
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuote((prev) => (prev + 1) % motivationalQuotes.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const mainFeatures = [
     {
@@ -18,7 +37,7 @@ const HomePage = () => {
       title: 'Learn',
       description: 'Interactive lessons',
       path: '/lessons',
-      color: '#28a745'
+      color: '#6f42c1'
     },
     {
       icon: FiAward,
@@ -39,21 +58,21 @@ const HomePage = () => {
       title: 'Tasks',
       description: 'Real-world activities',
       path: '/real-world-tasks',
-      color: '#20c997'
+      color: '#17a2b8'
     },
     {
       icon: FiUsers,
       title: 'Compete',
       description: 'Join competitions',
       path: '/competitions',
-      color: '#6f42c1'
+      color: '#28a745'
     },
     {
       icon: FiSettings,
       title: 'Exams',
       description: 'Test knowledge',
       path: '/tests',
-      color: '#17a2b8'
+      color: '#20c997'
     }
   ];
 
@@ -86,20 +105,20 @@ const HomePage = () => {
       </div>
       <div className="hero-section">
         <div className="hero-content">
-          <h1>🌱 Welcome to GreenSphere</h1>
+          <h1>Welcome back, {user?.name || 'User'}!</h1>
           <p>Learn, Act, and Save Our Planet</p>
           <div className="user-stats">
-            <div className="stat" onClick={() => alert('🎉 You have ' + (user?.points || 0) + ' eco-points! Keep learning to earn more!')}>
+            <div className="stat" onClick={() => alert('You have ' + (user?.points || 0) + ' eco-points! Keep learning to earn more!')}>
               <span className="stat-number">{user?.points || 0}</span>
-              <span className="stat-label">🎆 Points</span>
+              <span className="stat-label">Points</span>
             </div>
-            <div className="stat" onClick={() => alert('🌱 You are at ' + (user?.level || 'Beginner') + ' level! Complete more tasks to level up!')}>
+            <div className="stat" onClick={() => alert('You are at ' + (user?.level || 'Beginner') + ' level! Complete more tasks to level up!')}>
               <span className="stat-number">{user?.level || 'Beginner'}</span>
-              <span className="stat-label">🌿 Level</span>
+              <span className="stat-label">Level</span>
             </div>
-            <div className="stat" onClick={() => alert('🔥 Amazing! You have a ' + (user?.streakDays || 0) + ' day streak! Keep it up!')}>
+            <div className="stat" onClick={() => alert('Amazing! You have a ' + (user?.streakDays || 0) + ' day streak! Keep it up!')}>
               <span className="stat-number">{user?.streakDays || 0}</span>
-              <span className="stat-label">🔥 Streak</span>
+              <span className="stat-label">Streak</span>
             </div>
           </div>
           
@@ -182,7 +201,7 @@ const HomePage = () => {
         </div>
         
         <div className="motivational-text">
-          <p>🌍 Every small action makes a big difference! 🌱</p>
+          <p key={currentQuote} className="rotating-quote">{motivationalQuotes[currentQuote]}</p>
         </div>
       </div>
       

@@ -1,0 +1,167 @@
+/* Theme Utility Classes for Consistent Design System */
+
+/* Glassmorphism Card Variants */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .glass-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(71, 85, 105, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme="dark"] .glass-card:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* Button Variants */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 2px solid rgba(99, 102, 241, 0.4);
+  color: #4f46e5;
+  padding: 0.7rem 1.5rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glass::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.btn-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+.btn-glass:hover::before {
+  opacity: 1;
+}
+
+[data-theme="dark"] .btn-glass {
+  background: rgba(15, 23, 42, 0.95);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  color: #a78bfa;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .btn-glass::before {
+  background: linear-gradient(45deg, rgba(139, 92, 246, 0.4), rgba(99, 102, 241, 0.4));
+}
+
+[data-theme="dark"] .btn-glass:hover {
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.7);
+}
+
+/* Text Color Utilities */
+.text-primary-theme {
+  color: #1e293b;
+}
+
+[data-theme="dark"] .text-primary-theme {
+  color: #f1f5f9;
+}
+
+.text-secondary-theme {
+  color: #64748b;
+}
+
+[data-theme="dark"] .text-secondary-theme {
+  color: #cbd5e1;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .text-gradient {
+  background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Background Utilities */
+.bg-glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+}
+
+[data-theme="dark"] .bg-glass-light {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.bg-glass-heavy {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+}
+
+[data-theme="dark"] .bg-glass-heavy {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* Animation Utilities */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { 
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+  to { 
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  }
+}
+
+/* Focus States for Accessibility */
+.btn-glass:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.5);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] .btn-glass:focus {
+  outline: 2px solid rgba(52, 211, 153, 0.5);
+}

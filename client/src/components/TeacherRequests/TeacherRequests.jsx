@@ -14,7 +14,7 @@ const TeacherRequests = () => {
   const fetchTeacherRequests = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/roles/teacher-requests`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:9000/api'}/roles/teacher-requests`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -33,7 +33,7 @@ const TeacherRequests = () => {
     setProcessing(userId);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/roles/teacher-requests/${userId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:9000/api'}/roles/teacher-requests/${userId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiSun, FiMoon, FiUser, FiUsers, FiSettings } from 'react-icons/fi';
@@ -13,10 +13,24 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for success message from registration
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+      if (location.state.email) {
+        setFormData(prev => ({ ...prev, email: location.state.email }));
+      }
+      // Clear the state
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -24,20 +38,46 @@ const Login = () => {
       [e.target.name]: e.target.value
     });
     setError('');
+    setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
-    const result = await login(formData.email, formData.password);
+    // Validate input
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Password is required');
+      setLoading(false);
+      return;
+    }
+
+    console.log('🔐 Login attempt:', { email: formData.email, passwordLength: formData.password.length });
+    
+    const result = await login(formData.email.trim(), formData.password);
     
     if (result.success) {
-      // Navigate to home page for all users
-      navigate('/home');
+      console.log('✅ Login successful, user role:', result.user?.role);
+      // Navigate based on user role
+      const userRole = result.user?.role;
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else if (userRole === 'teacher') {
+        navigate('/teacher');
+      } else {
+        navigate('/student');
+      }
     } else {
-      setError(result.error || 'Login failed. Please try again.');
+      console.log('❌ Login failed:', result.error);
+      setError(result.error || 'Login failed. Please check your credentials and try again.');
     }
     
     setLoading(false);
@@ -75,6 +115,12 @@ const Login = () => {
           {error && (
             <div className="error-message">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="success-message">
+              {success}
             </div>
           )}
 

@@ -25,6 +25,7 @@ import ProfileSetup from './components/ProfileSetup/ProfileSetup';
 
 // Global Styles
 import './App.css';
+import './styles/theme-utils.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();

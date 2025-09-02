@@ -6,19 +6,14 @@
 .lessons-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 6rem 2rem 2rem;
 }
 
 .lessons-header {
-  text-align: center;
   margin-bottom: 2rem;
-  position: relative;
 }
 
 .back-btn {
-  position: absolute;
-  left: 0;
-  top: 0;
   background: var(--primary-green);
   color: white;
   border: none;
@@ -30,6 +25,7 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .back-btn:hover {
@@ -41,11 +37,13 @@
   font-size: 2rem;
   color: var(--light-text);
   margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .lessons-header p {
   color: var(--neutral-gray);
   font-size: 1.1rem;
+  text-align: center;
 }
 
 .category-filter {
@@ -244,12 +242,8 @@
     padding: 1rem;
   }
   
-  .back-btn {
-    position: static;
-    margin-bottom: 1rem;
-  }
-  
-  .lessons-header {
+  .lessons-header h1,
+  .lessons-header p {
     text-align: left;
   }
   

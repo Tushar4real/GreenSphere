@@ -89,7 +89,9 @@ export const teacherService = {
   createQuiz: (data) => api.post('/teacher/quiz', data),
   getQuizzes: () => api.get('/teacher/quizzes'),
   getRealWorldSubmissions: () => api.get('/real-world-tasks/submissions'),
-  reviewRealWorldSubmission: (id, data) => api.patch(`/real-world-tasks/submissions/${id}/review`, data)
+  reviewRealWorldSubmission: (id, data) => api.patch(`/real-world-tasks/submissions/${id}/review`, data),
+  requestTeacherRole: (data) => api.post('/teacher/request-role', data),
+  getTeacherRequests: () => api.get('/teacher/requests')
 };
 
 // Real World Tasks Services

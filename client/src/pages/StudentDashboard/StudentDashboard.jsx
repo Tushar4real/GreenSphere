@@ -6,6 +6,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import SidePanel from '../../components/SidePanel/SidePanel';
 import ScrollToTop from '../../components/ScrollToTop/ScrollToTop';
 import Footer from '../../components/Footer/Footer';
+import TeacherRequestBar from '../../components/TeacherRequestBar/TeacherRequestBar';
 import apiService from '../../services/apiService';
 import '../HomePage/HomePage.css';
 
@@ -202,6 +203,7 @@ const StudentDashboard = () => {
       
       <SidePanel />
       <ScrollToTop />
+      <TeacherRequestBar user={user} onRequestSubmitted={refreshUserData} />
       <Footer />
     </div>
   );

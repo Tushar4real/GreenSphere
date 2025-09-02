@@ -107,12 +107,30 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await api.post('/auth/register', userData);
-      return { success: true };
+      console.log('🚀 Starting registration process...');
+      const response = await api.post('/auth/register', userData);
+      console.log('✅ Registration initiated:', response.data);
+      return { success: true, message: response.data.message };
     } catch (error) {
+      console.error('❌ Registration failed:', error.response?.data);
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Registration failed' 
+        error: error.response?.data?.error || 'Registration failed. Please try again.' 
+      };
+    }
+  };
+
+  const verifyOTP = async (email, otp, role) => {
+    try {
+      console.log('🔐 Verifying OTP...');
+      const response = await api.post('/auth/verify-signup-otp', { email, otp, role });
+      console.log('✅ OTP verified:', response.data);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error('❌ OTP verification failed:', error.response?.data);
+      return { 
+        success: false, 
+        error: error.response?.data?.error || 'OTP verification failed. Please try again.' 
       };
     }
   };
@@ -154,6 +172,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     register,
+    verifyOTP,
     logout,
     updateUser,
     loading,

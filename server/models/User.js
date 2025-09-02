@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
   cognitoId: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   name: { type: String, required: true },
+  password: { type: String }, // For local authentication fallback
   role: { type: String, enum: ['student', 'teacher', 'admin'], default: 'student' },
   school: { type: String },
   grade: { type: String },

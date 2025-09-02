@@ -33,10 +33,51 @@
 
 body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: var(--light-bg);
-  color: var(--light-text);
-  transition: var(--transition);
+  background: linear-gradient(135deg, 
+    #f8fafc 0%, 
+    #e2e8f0 20%, 
+    #f1f5f9 40%, 
+    #e2e8f0 60%, 
+    #f8fafc 80%, 
+    #ffffff 100%);
+  background-size: 300% 300%;
+  animation: subtleGradient 30s ease infinite;
+  color: #1e293b;
+  transition: all 0.3s ease;
   line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, 
+    #0f172a 0%, 
+    #1e293b 20%, 
+    #0f1629 40%, 
+    #1e293b 60%, 
+    #0f172a 80%, 
+    #020617 100%);
+  background-size: 300% 300%;
+  animation: subtleGradient 30s ease infinite;
+  color: #f1f5f9;
+}
+
+@keyframes subtleGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .App {
@@ -95,13 +136,31 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-green), var(--secondary-teal));
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '✨';
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.3s ease;
+  opacity: 0;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+}
+
+.btn-primary:hover::before {
+  left: 10px;
+  opacity: 1;
 }
 
 .btn-secondary {
@@ -126,22 +185,53 @@ body {
 
 /* Card Styles */
 .card {
-  background: var(--light-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
-  padding: 20px;
-  transition: var(--transition);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  position: relative;
+  overflow: hidden;
+  color: #1e293b;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.08), transparent);
+  transition: left 0.6s ease;
+}
+
+.card:hover::before {
+  left: 100%;
 }
 
 [data-theme="dark"] .card {
-  background: var(--dark-bg);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(71, 85, 105, 0.25);
+  color: #f1f5f9;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .card::before {
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.15), transparent);
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--hover-shadow);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme="dark"] .card:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Form Styles */

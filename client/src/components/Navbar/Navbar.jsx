@@ -116,24 +116,31 @@ const Navbar = () => {
               <div className="profile-info">
                 <div className="info-item">
                   <label>Name</label>
-                  <span>{user.name}</span>
+                  <span>{user?.name || 'User'}</span>
                 </div>
                 <div className="info-item">
                   <label>Email</label>
-                  <span>{user.email}</span>
+                  <span>{user?.email || 'user@example.com'}</span>
                 </div>
-
+                <div className="info-item">
+                  <label>Role</label>
+                  <span className="role-badge">{user?.role || 'student'}</span>
+                </div>
+                <div className="info-item">
+                  <label>School</label>
+                  <span>{user?.school || 'GreenSphere Academy'}</span>
+                </div>
                 <div className="info-item">
                   <label>Level</label>
-                  <span className="level-badge">{user.level}</span>
+                  <span className="level-badge">{user?.level || 'Seedling'}</span>
                 </div>
                 <div className="info-item">
                   <label>Total Points</label>
-                  <span className="points-badge">{user.points || 450}</span>
+                  <span className="points-badge">{user?.points || 0}</span>
                 </div>
                 <div className="info-item">
-                  <label>Member Since</label>
-                  <span>January 2024</span>
+                  <label>Streak Days</label>
+                  <span className="streak-badge">{user?.streakDays || 0} days</span>
                 </div>
               </div>
               

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTrophy, FaMedal, FaSchool, FaCity } from 'react-icons/fa';
+import { FiArrowLeft } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import apiService from '../../services/apiService';
@@ -92,6 +93,9 @@ const Leaderboard = () => {
       <Navbar />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
+          <button className="back-btn" onClick={() => window.history.back()}>
+            <FiArrowLeft /> Back to Dashboard
+          </button>
           <h1>🏆 Leaderboard</h1>
           <p>See how you rank among eco-warriors!</p>
         </div>

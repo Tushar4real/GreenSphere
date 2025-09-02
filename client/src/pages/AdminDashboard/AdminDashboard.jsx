@@ -5,6 +5,7 @@ import ContentManager from '../../components/ContentManager/ContentManager';
 import Analytics from '../../components/Analytics/Analytics';
 import BulkUserManager from '../../components/BulkUserManager/BulkUserManager';
 import SystemMonitor from '../../components/SystemMonitor/SystemMonitor';
+import AddTeacher from '../../components/AddTeacher/AddTeacher';
 import { 
   FiUsers, FiBookOpen, FiAward, FiTrendingUp, FiSettings, 
   FiBarChart, FiPieChart, FiActivity, FiCalendar, FiDownload,
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
   const [showContentManager, setShowContentManager] = useState(false);
   const [contentType, setContentType] = useState('lesson');
   const [showBulkUserManager, setShowBulkUserManager] = useState(false);
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -368,8 +370,8 @@ const AdminDashboard = () => {
                 <button className="btn-secondary" onClick={() => setShowBulkUserManager(true)}>
                   <FiUsers /> Bulk Actions
                 </button>
-                <button className="btn-primary">
-                  <FiPlus /> Add User
+                <button className="btn-primary" onClick={() => setShowAddTeacher(true)}>
+                  <FiPlus /> Add Teacher
                 </button>
               </div>
             </div>
@@ -594,6 +596,17 @@ const AdminDashboard = () => {
           onBulkAction={(action, data) => {
             console.log('Bulk action:', action, data);
             setShowBulkUserManager(false);
+            loadDashboardData();
+          }}
+        />
+      )}
+      
+      {/* Add Teacher Modal */}
+      {showAddTeacher && (
+        <AddTeacher
+          onClose={() => setShowAddTeacher(false)}
+          onTeacherAdded={() => {
+            setShowAddTeacher(false);
             loadDashboardData();
           }}
         />

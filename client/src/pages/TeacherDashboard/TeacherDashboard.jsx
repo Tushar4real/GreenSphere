@@ -16,6 +16,7 @@ const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTest, setShowCreateTest] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const [dashboardStats, setDashboardStats] = useState({
     totalStudents: 0,
     pendingSubmissions: 0,
@@ -230,7 +231,7 @@ const TeacherDashboard = () => {
             <FiUsers />
           </div>
           <div className="stat-content">
-            <h3>{studentCount}</h3>
+            <h3>{dashboardStats.totalStudents}</h3>
             <p>Students</p>
           </div>
         </div>

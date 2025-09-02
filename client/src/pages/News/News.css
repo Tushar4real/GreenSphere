@@ -10,8 +10,27 @@
 }
 
 .news-header {
-  text-align: center;
   margin-bottom: 40px;
+}
+
+.back-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.back-btn:hover {
+  background: var(--secondary-teal);
+  transform: translateY(-2px);
 }
 
 .news-header h1 {
@@ -22,11 +41,13 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
+  text-align: center;
 }
 
 .news-header p {
   color: #666;
   font-size: 1.1rem;
+  text-align: center;
 }
 
 .news-grid {

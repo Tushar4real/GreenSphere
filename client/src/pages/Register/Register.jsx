@@ -21,7 +21,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const { register } = useAuth();
+  const { register, verifyOTP } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -37,8 +37,21 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
-    // Validate password
+    // Validate input
+    if (!formData.name.trim()) {
+      setError('Full name is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      setLoading(false);
+      return;
+    }
+
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long');
       setLoading(false);
@@ -51,10 +64,21 @@ const Register = () => {
       return;
     }
 
-    const result = await register(formData);
+    console.log('🚀 Submitting registration:', { 
+      email: formData.email, 
+      name: formData.name, 
+      role: formData.role 
+    });
+
+    const result = await register({
+      email: formData.email.trim(),
+      name: formData.name.trim(),
+      password: formData.password,
+      role: formData.role
+    });
     
     if (result.success) {
-      setSuccess('Verification code sent to your email!');
+      setSuccess(result.message || 'Verification code sent to your email!');
       setShowOtpForm(true);
     } else {
       setError(result.error || 'Registration failed. Please try again.');
@@ -67,27 +91,30 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:9000/api'}/auth/verify-signup-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp, role: formData.role })
-      });
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP');
+      setLoading(false);
+      return;
+    }
 
-      const data = await response.json();
+    console.log('🔐 Verifying OTP:', { email: formData.email, otp: otp.substring(0, 2) + '****' });
 
-      if (response.ok) {
-        setSuccess('Registration completed! Redirecting to login...');
-        setTimeout(() => {
-          navigate('/login');
-        }, 1500);
-      } else {
-        setError(data.error);
-      }
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      setError('Network error. Please check your connection and try again.');
+    const result = await verifyOTP(formData.email.trim(), otp, formData.role);
+
+    if (result.success) {
+      setSuccess(result.message || 'Registration completed successfully!');
+      setTimeout(() => {
+        navigate('/login', { 
+          state: { 
+            message: 'Registration completed! Please login with your credentials.',
+            email: formData.email 
+          }
+        });
+      }, 2000);
+    } else {
+      setError(result.error || 'OTP verification failed. Please try again.');
     }
     
     setLoading(false);
@@ -234,8 +261,13 @@ const Register = () => {
               </div>
             )}
 
-            <p>Enter the OTP sent to {formData.email}</p>
-            <p><small>Check your email for verification code</small></p>
+            <p>Enter the OTP sent to <strong>{formData.email}</strong></p>
+            <p><small>📧 Check your email inbox (and spam folder) for the 6-digit verification code</small></p>
+            
+            <div className="email-info">
+              <p><small>💡 <strong>Tip:</strong> The email may take a few minutes to arrive</small></p>
+              <p><small>🔄 Didn't receive the email? Check your spam folder or try registering again</small></p>
+            </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="otp">OTP</label>
