@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
 import { FiBook, FiPlay, FiClock, FiAward, FiArrowLeft } from 'react-icons/fi';
@@ -7,6 +7,8 @@ import './Lessons.css';
 const Lessons = () => {
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [visibleCards, setVisibleCards] = useState(new Set());
+  const observerRef = useRef(null);
 
   const lessons = [
     { 
@@ -81,6 +83,46 @@ const Lessons = () => {
     alert(`Starting lesson: ${lesson.title}`);
   };
 
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cardId = entry.target.dataset.cardId;
+            setVisibleCards(prev => new Set([...prev, cardId]));
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '50px'
+      }
+    );
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const cards = document.querySelectorAll('.lesson-card');
+    cards.forEach(card => {
+      if (observerRef.current) {
+        observerRef.current.observe(card);
+      }
+    });
+
+    return () => {
+      cards.forEach(card => {
+        if (observerRef.current) {
+          observerRef.current.unobserve(card);
+        }
+      });
+    };
+  }, [filteredLessons]);
+
   return (
     <div className="lessons-page">
       <Navbar />
@@ -109,8 +151,13 @@ const Lessons = () => {
 
         {/* Lessons Grid */}
         <div className="lessons-grid">
-          {filteredLessons.map(lesson => (
-            <div key={lesson._id} className={`lesson-card ${lesson.completed ? 'completed' : ''}`}>
+          {filteredLessons.map((lesson, index) => (
+            <div 
+              key={lesson._id} 
+              className={`lesson-card ${lesson.completed ? 'completed' : ''} ${visibleCards.has(lesson._id.toString()) ? 'fade-in' : 'fade-out'}`}
+              data-card-id={lesson._id}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="lesson-header">
                 <div className="lesson-category">{lesson.category}</div>
                 {lesson.completed && <div className="completed-badge">✓</div>}

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
 import { FiArrowLeft, FiArrowRight, FiClock, FiCheck, FiX, FiHome, FiAward } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import apiService from '../../services/apiService';
 import { triggerPointsAnimation } from '../../utils/pointsAnimation';
 import './QuizPage.css';
 

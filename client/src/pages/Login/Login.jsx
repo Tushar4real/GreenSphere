@@ -34,21 +34,8 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      // Navigate based on user's role from backend
-      const userRole = result.user?.role || 'student';
-      switch (userRole) {
-        case 'student':
-          navigate('/student');
-          break;
-        case 'teacher':
-          navigate('/teacher');
-          break;
-        case 'admin':
-          navigate('/admin');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+      // Navigate to home page for all users
+      navigate('/home');
     } else {
       setError(result.error || 'Login failed. Please try again.');
     }

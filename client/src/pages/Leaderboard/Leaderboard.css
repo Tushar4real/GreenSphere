@@ -1,0 +1,175 @@
+.leaderboard-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+}
+
+.leaderboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 20px 40px;
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.leaderboard-header h1 {
+  font-size: 2.5rem;
+  color: #2d5a2d;
+  margin-bottom: 10px;
+}
+
+.leaderboard-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px solid #28a745;
+  background: white;
+  color: #28a745;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.tab.active {
+  background: #28a745;
+  color: white;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.rank-1 {
+  border-left: 5px solid #ffd700;
+}
+
+.rank-2 {
+  border-left: 5px solid #c0c0c0;
+}
+
+.rank-3 {
+  border-left: 5px solid #cd7f32;
+}
+
+.rank {
+  margin-right: 20px;
+  font-size: 1.5rem;
+}
+
+.gold {
+  color: #ffd700;
+}
+
+.silver {
+  color: #c0c0c0;
+}
+
+.bronze {
+  color: #cd7f32;
+}
+
+.rank-number {
+  font-weight: bold;
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-info h3 {
+  margin: 0 0 5px 0;
+  color: #2d5a2d;
+  font-size: 1.2rem;
+}
+
+.user-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.user-stats {
+  display: flex;
+  gap: 30px;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat .value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.stat .label {
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .leaderboard-tabs {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .leaderboard-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .user-stats {
+    justify-content: center;
+  }
+}

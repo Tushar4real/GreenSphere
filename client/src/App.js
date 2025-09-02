@@ -9,12 +9,18 @@ import Register from './pages/Register/Register';
 import StudentDashboard from './pages/StudentDashboard/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard/TeacherDashboard';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
+import HomePage from './pages/HomePage/HomePage';
 import LessonPage from './pages/LessonPage/LessonPage';
 import QuizPage from './pages/QuizPage/QuizPage';
 import Lessons from './pages/Lessons/Lessons';
 import Tests from './pages/Tests/Tests';
 import Competitions from './pages/Competitions/Competitions';
 import RealWorldTasks from './pages/RealWorldTasks/RealWorldTasks';
+import NotificationsPage from './pages/NotificationsPage/NotificationsPage';
+import CommunityPage from './pages/CommunityPage/CommunityPage';
+import Leaderboard from './pages/Leaderboard/Leaderboard';
+import News from './pages/News/News';
+import Badges from './pages/Badges/Badges';
 import ProfileSetup from './components/ProfileSetup/ProfileSetup';
 
 // Global Styles
@@ -100,17 +106,53 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
+      <Route path="/home" element={
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/notifications" element={
+        <ProtectedRoute>
+          <NotificationsPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/community" element={
+        <ProtectedRoute>
+          <CommunityPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/leaderboard" element={
+        <ProtectedRoute>
+          <Leaderboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/news" element={
+        <ProtectedRoute>
+          <News />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/badges" element={
+        <ProtectedRoute>
+          <Badges />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/dashboard" element={
         <ProtectedRoute>
           {user?.role === 'student' && <StudentDashboard />}
           {user?.role === 'teacher' && <TeacherDashboard />}
           {user?.role === 'admin' && <AdminDashboard />}
-          {!user?.role && <StudentDashboard />}
+          {!user?.role && <HomePage />}
         </ProtectedRoute>
       } />
       
       <Route path="/" element={
-        user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
       } />
       
       <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />

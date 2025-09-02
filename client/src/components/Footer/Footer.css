@@ -1,0 +1,49 @@
+.app-footer {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-brand h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+}
+
+.footer-brand p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 30px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .app-footer {
+  background: linear-gradient(135deg, #1a4d2e, #0f3a2a);
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

@@ -66,24 +66,41 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('=== LOGIN DEBUG ===');
+      console.log('API_URL:', API_URL);
       console.log('Making login request to:', `${API_URL}/auth/login`);
+      console.log('Request data:', { email, password: '***' });
+      
       const response = await api.post('/auth/login', { email, password });
-      console.log('Login response:', response.data);
+      console.log('Login response status:', response.status);
+      console.log('Login response data:', response.data);
       
       const { token: newToken, user: userData } = response.data;
+      
+      if (!newToken || !userData) {
+        throw new Error('Invalid response format');
+      }
       
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setUser(userData);
       
+      console.log('Token stored:', newToken.substring(0, 20) + '...');
       console.log('User set in context:', userData);
+      console.log('=== LOGIN SUCCESS ===');
       
       return { success: true, user: userData };
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
+      console.error('=== LOGIN ERROR ===');
+      console.error('Error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+        error: error.response?.data?.error || error.message || 'Login failed' 
       };
     }
   };

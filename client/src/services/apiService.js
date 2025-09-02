@@ -100,6 +100,34 @@ export const realWorldTaskService = {
   getSubmissions: () => api.get('/real-world-tasks/submissions')
 };
 
+// Analytics Services
+export const analyticsService = {
+  getDashboardStats: (timeRange) => api.get(`/analytics/dashboard-stats?timeRange=${timeRange}`),
+  getRecentActivity: () => api.get('/analytics/recent-activity'),
+  getSystemHealth: () => api.get('/analytics/system-health'),
+  getSystemLogs: () => api.get('/analytics/system-logs')
+};
+
+// Content Services
+export const contentService = {
+  createLesson: (data) => api.post('/content/lessons', data),
+  createQuiz: (data) => api.post('/content/quizzes', data),
+  getAllLessons: () => api.get('/content/lessons'),
+  getAllQuizzes: () => api.get('/content/quizzes'),
+  updateLesson: (id, data) => api.put(`/content/lessons/${id}`, data),
+  updateQuiz: (id, data) => api.put(`/content/quizzes/${id}`, data),
+  deleteLesson: (id) => api.delete(`/content/lessons/${id}`),
+  deleteQuiz: (id) => api.delete(`/content/quizzes/${id}`)
+};
+
+// Bulk User Services
+export const bulkUserService = {
+  importUsers: (users) => api.post('/bulk-users/import', { users }),
+  exportUsers: (params) => api.get('/bulk-users/export', { params }),
+  updateUsers: (userIds, updates) => api.put('/bulk-users/update', { userIds, updates }),
+  deleteUsers: (userIds) => api.delete('/bulk-users/delete', { data: { userIds } })
+};
+
 export default {
   auth: authService,
   user: userService,
@@ -112,6 +140,9 @@ export default {
   admin: adminService,
   teacher: teacherService,
   realWorldTask: realWorldTaskService,
+  analytics: analyticsService,
+  content: contentService,
+  bulkUser: bulkUserService,
   // Direct API access for custom calls
   get: (url) => api.get(url),
   post: (url, data) => api.post(url, data),

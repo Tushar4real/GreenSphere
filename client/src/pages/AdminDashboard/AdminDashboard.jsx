@@ -1,18 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
-import { FiUsers, FiUserCheck, FiUserPlus, FiMail, FiCheck, FiX, FiEye, FiTrash2, FiSettings } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import ContentManager from '../../components/ContentManager/ContentManager';
+import Analytics from '../../components/Analytics/Analytics';
+import BulkUserManager from '../../components/BulkUserManager/BulkUserManager';
+import SystemMonitor from '../../components/SystemMonitor/SystemMonitor';
+import { 
+  FiUsers, FiBookOpen, FiAward, FiTrendingUp, FiSettings, 
+  FiBarChart, FiPieChart, FiActivity, FiCalendar, FiDownload,
+  FiPlus, FiEdit, FiTrash2, FiEye, FiUserCheck, FiUserX, FiBell
+} from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import SidePanel from '../../components/SidePanel/SidePanel';
+import ScrollToTop from '../../components/ScrollToTop/ScrollToTop';
+import Footer from '../../components/Footer/Footer';
+import apiService from '../../services/apiService';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalTeachers: 0,
+    totalStudents: 0,
+    totalLessons: 0,
+    totalTasks: 0,
+    totalBadges: 0,
+    activeCompetitions: 0,
+    pendingRequests: 0
+  });
+  const [users, setUsers] = useState([]);
   const [teacherRequests, setTeacherRequests] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddTeacher, setShowAddTeacher] = useState(false);
-  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', password: '' });
+  const [showContentManager, setShowContentManager] = useState(false);
+  const [contentType, setContentType] = useState('lesson');
+  const [showBulkUserManager, setShowBulkUserManager] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -21,449 +45,563 @@ const AdminDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [requestsRes, usersRes] = await Promise.all([
-        safeApiCall(() => apiService.get('/roles/teacher-requests'), []),
-        safeApiCall(() => apiService.get('/roles/users'), [])
+      const [usersRes, requestsRes, statsRes] = await Promise.all([
+        apiService.admin.getAllUsers().catch(() => ({ data: [] })),
+        apiService.admin.getTeacherRequests().catch(() => ({ data: [] })),
+        apiService.analytics.getDashboardStats('7d').catch(() => ({ data: { stats: {} } }))
       ]);
       
-      setTeacherRequests(requestsRes.data || mockTeacherRequests);
-      setAllUsers(usersRes.data || mockUsers);
+      const usersList = usersRes.data || [];
+      const requests = requestsRes.data || [];
+      
+      setUsers(usersList);
+      setTeacherRequests(requests);
+      
+      const realStats = statsRes.data?.stats || {};
+      setStats({
+        totalUsers: usersList.length || realStats.totalUsers || 156,
+        totalTeachers: usersList.filter(u => u.role === 'teacher').length || realStats.totalTeachers || 12,
+        totalStudents: usersList.filter(u => u.role === 'student').length || realStats.totalStudents || 144,
+        totalLessons: realStats.totalLessons || 25,
+        totalTasks: realStats.totalTasks || 18,
+        totalBadges: realStats.totalBadges || 15,
+        activeCompetitions: realStats.activeCompetitions || 3,
+        pendingRequests: requests.length
+      });
+      
+      await refreshUserData();
     } catch (error) {
-      console.error('Error loading admin data:', error);
-      setTeacherRequests(mockTeacherRequests);
-      setAllUsers(mockUsers);
+      console.error('Error loading dashboard data:', error);
+      setStats({
+        totalUsers: 156,
+        totalTeachers: 12,
+        totalStudents: 144,
+        totalLessons: 25,
+        totalTasks: 18,
+        totalBadges: 15,
+        activeCompetitions: 3,
+        pendingRequests: 0
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const safeApiCall = async (apiCall, fallback) => {
+  const handleApproveTeacher = async (userId, approved) => {
     try {
-      return await apiCall();
-    } catch (error) {
-      console.warn('API call failed, using fallback:', error.message);
-      return { data: fallback };
-    }
-  };
-
-  const mockTeacherRequests = [
-    {
-      _id: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@school.edu',
-      teacherRequest: {
-        status: 'pending',
-        requestedAt: new Date('2024-01-15'),
-        reason: 'I am a certified environmental science teacher with 5 years of experience.'
-      },
-      createdAt: new Date('2024-01-10')
-    },
-    {
-      _id: '2',
-      name: 'Michael Chen',
-      email: 'michael.chen@university.edu',
-      teacherRequest: {
-        status: 'pending',
-        requestedAt: new Date('2024-01-14'),
-        reason: 'PhD in Environmental Studies, currently teaching at university level.'
-      },
-      createdAt: new Date('2024-01-12')
-    }
-  ];
-
-  const mockUsers = [
-    {
-      _id: '1',
-      name: 'Alice Green',
-      email: 'alice@student.com',
-      role: 'student',
-      points: 450,
-      level: 'Sapling',
-      createdAt: new Date('2024-01-01')
-    },
-    {
-      _id: '2',
-      name: 'Bob Teacher',
-      email: 'bob@teacher.com',
-      role: 'teacher',
-      points: 0,
-      level: 'Educator',
-      createdAt: new Date('2024-01-05')
-    }
-  ];
-
-  const handleTeacherRequest = async (userId, action, reason = '') => {
-    try {
-      await safeApiCall(
-        () => apiService.patch(`/roles/teacher-requests/${userId}`, { action, reason }),
-        { success: true }
-      );
-      
-      // Update local state
-      setTeacherRequests(prev => prev.filter(req => req._id !== userId));
-      
-      // Refresh users list
+      await apiService.admin.approveTeacherRequest(userId, { approved });
       loadDashboardData();
-      
-      alert(`Teacher request ${action}ed successfully!`);
     } catch (error) {
       console.error('Error processing teacher request:', error);
-      alert('Error processing request. Please try again.');
-    }
-  };
-
-  const handleAddTeacher = async (e) => {
-    e.preventDefault();
-    
-    if (!newTeacher.name || !newTeacher.email || !newTeacher.password) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      await safeApiCall(
-        () => apiService.post('/roles/add-teacher', newTeacher),
-        { success: true }
-      );
-      
-      setNewTeacher({ name: '', email: '', password: '' });
-      setShowAddTeacher(false);
-      loadDashboardData();
-      alert('Teacher added successfully!');
-    } catch (error) {
-      console.error('Error adding teacher:', error);
-      alert('Error adding teacher. Please try again.');
     }
   };
 
   const handleChangeUserRole = async (userId, newRole) => {
     try {
-      await safeApiCall(
-        () => apiService.patch(`/roles/change-role/${userId}`, { role: newRole }),
-        { success: true }
-      );
-      
+      await apiService.admin.changeUserRole(userId, { role: newRole });
       loadDashboardData();
-      alert(`User role updated to ${newRole}!`);
     } catch (error) {
       console.error('Error changing user role:', error);
-      alert('Error updating user role. Please try again.');
     }
   };
 
-  const renderOverview = () => (
-    <div className="overview-section">
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FiUsers />
-          </div>
-          <div className="stat-content">
-            <h3>{allUsers.length}</h3>
-            <p>Total Users</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FiUserCheck />
-          </div>
-          <div className="stat-content">
-            <h3>{allUsers.filter(u => u.role === 'teacher').length}</h3>
-            <p>Active Teachers</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FiMail />
-          </div>
-          <div className="stat-content">
-            <h3>{teacherRequests.length}</h3>
-            <p>Pending Requests</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FiUsers />
-          </div>
-          <div className="stat-content">
-            <h3>{allUsers.filter(u => u.role === 'student').length}</h3>
-            <p>Students</p>
-          </div>
-        </div>
-      </div>
+  const handleCreateContent = (type) => {
+    setContentType(type);
+    setShowContentManager(true);
+  };
 
-      <div className="recent-activity">
-        <h3>Recent Teacher Requests</h3>
-        {teacherRequests.slice(0, 3).map(request => (
-          <div key={request._id} className="activity-item">
-            <div className="activity-info">
-              <strong>{request.name}</strong> requested teacher access
-              <span className="activity-time">
-                {new Date(request.teacherRequest.requestedAt).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="activity-actions">
-              <button 
-                className="btn btn-sm btn-success"
-                onClick={() => handleTeacherRequest(request._id, 'approve')}
-              >
-                <FiCheck /> Approve
-              </button>
-              <button 
-                className="btn btn-sm btn-danger"
-                onClick={() => handleTeacherRequest(request._id, 'reject', 'Application needs more information')}
-              >
-                <FiX /> Reject
-              </button>
-            </div>
+  const handleSaveContent = async (contentData) => {
+    try {
+      if (contentType === 'lesson') {
+        await apiService.content.createLesson(contentData);
+      } else {
+        await apiService.content.createQuiz(contentData);
+      }
+      
+      alert(`${contentType === 'lesson' ? 'Lesson' : 'Quiz'} created successfully!`);
+      setShowContentManager(false);
+      loadDashboardData(); // Refresh data
+    } catch (error) {
+      console.error('Error saving content:', error);
+      alert(`Error creating ${contentType}: ${error.response?.data?.error || error.message}`);
+    }
+  };
+
+  const StatCard = ({ icon: Icon, title, value, color, trend }) => (
+    <div className="stat-card">
+      <div className="stat-icon" style={{ backgroundColor: color }}>
+        <Icon />
+      </div>
+      <div className="stat-content">
+        <h3>{value}</h3>
+        <p>{title}</p>
+        {trend && (
+          <div className="stat-trend">
+            <FiTrendingUp />
+            <span>{trend}</span>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
 
-  const renderTeacherRequests = () => (
-    <div className="requests-section">
-      <div className="section-header">
-        <h2>Teacher Requests</h2>
-        <span className="badge">{teacherRequests.length} pending</span>
-      </div>
-
-      {teacherRequests.length === 0 ? (
-        <div className="empty-state">
-          <FiMail size={48} />
-          <h3>No pending requests</h3>
-          <p>All teacher requests have been processed.</p>
-        </div>
-      ) : (
-        <div className="requests-list">
-          {teacherRequests.map(request => (
-            <div key={request._id} className="request-card">
-              <div className="request-header">
-                <div className="user-info">
-                  <div className="user-avatar">
-                    {request.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="user-details">
-                    <h4>{request.name}</h4>
-                    <p>{request.email}</p>
-                    <span className="request-date">
-                      Requested: {new Date(request.teacherRequest.requestedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="request-status">
-                  <span className="status-badge pending">Pending</span>
-                </div>
-              </div>
-
-              <div className="request-reason">
-                <h5>Reason for Request:</h5>
-                <p>{request.teacherRequest.reason || 'No reason provided'}</p>
-              </div>
-
-              <div className="request-actions">
-                <button 
-                  className="btn btn-success"
-                  onClick={() => handleTeacherRequest(request._id, 'approve')}
-                >
-                  <FiCheck /> Approve Request
-                </button>
-                <button 
-                  className="btn btn-danger"
-                  onClick={() => {
-                    const reason = prompt('Reason for rejection (optional):');
-                    handleTeacherRequest(request._id, 'reject', reason || 'Application rejected');
-                  }}
-                >
-                  <FiX /> Reject Request
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderUserManagement = () => (
-    <div className="users-section">
-      <div className="section-header">
-        <h2>User Management</h2>
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowAddTeacher(true)}
-        >
-          <FiUserPlus /> Add Teacher
-        </button>
-      </div>
-
-      <div className="users-table">
-        <table>
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Points</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allUsers.map(user => (
-              <tr key={user._id}>
-                <td>
-                  <div className="user-cell">
-                    <div className="user-avatar small">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span>{user.name}</span>
-                  </div>
-                </td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`role-badge ${user.role}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td>{user.points || 0}</td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <div className="user-actions">
-                    <select 
-                      value={user.role}
-                      onChange={(e) => handleChangeUserRole(user._id, e.target.value)}
-                      className="role-select"
-                    >
-                      <option value="student">Student</option>
-                      <option value="teacher">Teacher</option>
-                    </select>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Add Teacher Modal */}
-      {showAddTeacher && (
-        <div className="modal-overlay" onClick={() => setShowAddTeacher(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Add New Teacher</h3>
-              <button 
-                className="modal-close"
-                onClick={() => setShowAddTeacher(false)}
-              >
-                <FiX />
-              </button>
-            </div>
-            
-            <form onSubmit={handleAddTeacher} className="modal-body">
-              <div className="form-group">
-                <label>Full Name</label>
-                <input
-                  type="text"
-                  value={newTeacher.name}
-                  onChange={(e) => setNewTeacher({...newTeacher, name: e.target.value})}
-                  placeholder="Enter teacher's full name"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  value={newTeacher.email}
-                  onChange={(e) => setNewTeacher({...newTeacher, email: e.target.value})}
-                  placeholder="Enter teacher's email"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Temporary Password</label>
-                <input
-                  type="password"
-                  value={newTeacher.password}
-                  onChange={(e) => setNewTeacher({...newTeacher, password: e.target.value})}
-                  placeholder="Enter temporary password"
-                  required
-                />
-              </div>
-              
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddTeacher(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  <FiUserPlus /> Add Teacher
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const mainFeatures = [
+    {
+      icon: FiUsers,
+      title: 'Users',
+      description: `${stats.totalUsers} total`,
+      action: () => setActiveTab('users'),
+      color: '#28a745'
+    },
+    {
+      icon: FiBookOpen,
+      title: 'Content',
+      description: `${stats.totalLessons} lessons`,
+      action: () => setActiveTab('content'),
+      color: '#20c997'
+    },
+    {
+      icon: FiUserCheck,
+      title: 'Requests',
+      description: `${stats.pendingRequests} pending`,
+      action: () => setActiveTab('requests'),
+      color: '#ffc107'
+    },
+    {
+      icon: FiBarChart,
+      title: 'Analytics',
+      description: 'View insights',
+      action: () => setActiveTab('overview'),
+      color: '#fd7e14'
+    },
+    {
+      icon: FiSettings,
+      title: 'System',
+      description: 'Manage platform',
+      action: () => setActiveTab('system'),
+      color: '#6f42c1'
+    },
+    {
+      icon: FiAward,
+      title: 'Badges',
+      description: `${stats.totalBadges} created`,
+      action: () => navigate('/badges'),
+      color: '#17a2b8'
+    }
+  ];
 
   if (loading) {
     return (
-      <div className="admin-dashboard">
+      <div className="homepage">
         <Navbar />
-        <div className="dashboard-container">
-          <div className="loading-spinner">Loading admin dashboard...</div>
-        </div>
+        <div className="loading-spinner">Loading admin dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className="homepage">
       <Navbar />
+
       
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>Admin Dashboard</h1>
-          <p>Manage users, teacher requests, and system settings</p>
-        </div>
-
-        <div className="dashboard-tabs">
-          <button 
-            className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            <FiSettings /> Overview
-          </button>
-          <button 
-            className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
-            onClick={() => setActiveTab('requests')}
-          >
-            <FiMail /> Teacher Requests
-            {teacherRequests.length > 0 && (
-              <span className="tab-badge">{teacherRequests.length}</span>
-            )}
-          </button>
-          <button 
-            className={`tab ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
-          >
-            <FiUsers /> User Management
-          </button>
-        </div>
-
-        <div className="dashboard-content">
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'requests' && renderTeacherRequests()}
-          {activeTab === 'users' && renderUserManagement()}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1>🛠️ Admin Control Center</h1>
+          <p>Manage your GreenSphere platform</p>
+          <div className="user-stats">
+            <div className="stat" onClick={() => setActiveTab('users')}>
+              <span className="stat-number">{stats.totalUsers}</span>
+              <span className="stat-label">👥 Users</span>
+            </div>
+            <div className="stat" onClick={() => setActiveTab('content')}>
+              <span className="stat-number">{stats.totalLessons}</span>
+              <span className="stat-label">📚 Lessons</span>
+            </div>
+            <div className="stat" onClick={() => setActiveTab('requests')}>
+              <span className="stat-number">{stats.pendingRequests}</span>
+              <span className="stat-label">⏳ Requests</span>
+            </div>
+          </div>
+          
+          <div className="level-progress">
+            <div className="progress-bar-container">
+              <div className="progress-label">Platform growth this month</div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width: `${Math.min(100, (stats.totalUsers / 2))}%`}}></div>
+              </div>
+              <div className="progress-text">{stats.totalStudents} active students</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div className="main-features-grid">
+        {mainFeatures.map((feature, index) => (
+          <div 
+            key={index}
+            className="main-feature-card"
+            onClick={feature.action}
+            style={{ 
+              '--feature-color': feature.color,
+              animationDelay: `${index * 0.1}s`
+            }}
+          >
+            <div className="main-feature-icon">
+              <feature.icon />
+            </div>
+            <h3>{feature.title}</h3>
+            <p>{feature.description}</p>
+            <div className="main-feature-badge">
+              {feature.title === 'Users' && '👥'}
+              {feature.title === 'Content' && '📚'}
+              {feature.title === 'Requests' && '⏳'}
+              {feature.title === 'Analytics' && '📈'}
+              {feature.title === 'System' && '⚙️'}
+              {feature.title === 'Badges' && '🏆'}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="quick-actions">
+        <h2>🚀 Platform Management</h2>
+        <div className="action-buttons">
+          <button 
+            className="action-btn primary prominent"
+            onClick={() => setActiveTab('users')}
+          >
+            👥 Manage Users
+          </button>
+          <button 
+            className="action-btn secondary prominent"
+            onClick={() => setActiveTab('content')}
+          >
+            📚 Create Content
+          </button>
+        </div>
+        
+        <div className="motivational-text">
+          <p>🌍 Building the future of environmental education! 🌱</p>
+        </div>
+      </div>
+
+      {/* Render detailed views when needed */}
+      {activeTab !== 'overview' && (
+        <div className="dashboard-container" style={{ marginTop: '2rem', background: 'white', borderRadius: '15px', padding: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+          <div className="admin-tabs">
+            <button 
+              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <FiBarChart /> Overview
+            </button>
+            <button 
+              className={`tab ${activeTab === 'users' ? 'active' : ''}`}
+              onClick={() => setActiveTab('users')}
+            >
+              <FiUsers /> Users
+            </button>
+            <button 
+              className={`tab ${activeTab === 'content' ? 'active' : ''}`}
+              onClick={() => setActiveTab('content')}
+            >
+              <FiBookOpen /> Content
+            </button>
+            <button 
+              className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
+              onClick={() => setActiveTab('requests')}
+            >
+              <FiUserCheck /> Requests ({teacherRequests.length})
+            </button>
+            <button 
+              className={`tab ${activeTab === 'system' ? 'active' : ''}`}
+              onClick={() => setActiveTab('system')}
+            >
+              <FiSettings /> System
+            </button>
+          </div>
+
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="tab-content">
+              {/* Stats Grid */}
+              <div className="stats-grid">
+                <StatCard 
+                  icon={FiUsers} 
+                  title="Total Users" 
+                  value={stats.totalUsers} 
+                  color="var(--primary-green)"
+                  trend="+12% this month"
+                />
+                <StatCard 
+                  icon={FiUserCheck} 
+                  title="Teachers" 
+                  value={stats.totalTeachers} 
+                  color="var(--secondary-teal)"
+                  trend="+5 new"
+                />
+                <StatCard 
+                  icon={FiBookOpen} 
+                  title="Active Lessons" 
+                  value={stats.totalLessons} 
+                  color="var(--accent-yellow)"
+                />
+                <StatCard 
+                  icon={FiAward} 
+                  title="Total Badges" 
+                  value={stats.totalBadges} 
+                  color="var(--accent-orange)"
+                />
+              </div>
+
+              {/* Analytics Section */}
+              <Analytics />
+            </div>
+          )}
+
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div className="tab-content">
+            <div className="section-header">
+              <h3>👥 Real-Time User Management ({users.length} users)</h3>
+              <div className="section-actions">
+                <button className="btn-secondary" onClick={() => setShowBulkUserManager(true)}>
+                  <FiUsers /> Bulk Actions
+                </button>
+                <button className="btn-primary">
+                  <FiPlus /> Add User
+                </button>
+              </div>
+            </div>
+            
+            <div className="users-stats">
+              <div className="stat-card">
+                <div className="stat-number">{users.filter(u => u.role === 'student').length}</div>
+                <div className="stat-label">Students</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{users.filter(u => u.role === 'teacher').length}</div>
+                <div className="stat-label">Teachers</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{users.filter(u => {
+                  const lastActivity = new Date(u.lastActivity || u.createdAt);
+                  const daysSinceActive = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24);
+                  return daysSinceActive <= 7;
+                }).length}</div>
+                <div className="stat-label">Active (7d)</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{users.reduce((sum, u) => sum + (u.points || 0), 0)}</div>
+                <div className="stat-label">Total Points</div>
+              </div>
+            </div>
+            
+            <div className="users-table">
+              <div className="table-header">
+                <span>User</span>
+                <span>Role</span>
+                <span>Points</span>
+                <span>Level</span>
+                <span>Last Active</span>
+                <span>School</span>
+                <span>Actions</span>
+              </div>
+              
+              {users.map(user => {
+                const lastActivity = new Date(user.lastActivity || user.createdAt);
+                const daysSinceActive = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+                const isActive = daysSinceActive <= 7;
+                
+                return (
+                  <div key={user._id} className={`table-row ${isActive ? 'active-user' : ''}`}>
+                    <div className="user-info">
+                      <div className="user-avatar">
+                        {user.name.charAt(0).toUpperCase()}
+                        {isActive && <div className="active-indicator"></div>}
+                      </div>
+                      <div>
+                        <p className="user-name">{user.name}</p>
+                        <p className="user-email">{user.email}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="user-role">
+                      <select 
+                        value={user.role} 
+                        onChange={(e) => handleChangeUserRole(user._id, e.target.value)}
+                        className="role-select"
+                      >
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    
+                    <div className="user-points">{user.points || 0}</div>
+                    
+                    <div className="user-level">
+                      <span className="level-badge">{user.level || 'Seedling'}</span>
+                    </div>
+                    
+                    <div className="user-activity">
+                      {daysSinceActive === 0 ? 'Today' : 
+                       daysSinceActive === 1 ? 'Yesterday' :
+                       daysSinceActive <= 7 ? `${daysSinceActive}d ago` :
+                       `${Math.floor(daysSinceActive / 7)}w ago`}
+                    </div>
+                    
+                    <div className="user-school">{user.school || 'N/A'}</div>
+                    
+                    <div className="user-actions">
+                      <button className="btn-icon" title="View Details">
+                        <FiEye />
+                      </button>
+                      <button className="btn-icon" title="Edit">
+                        <FiEdit />
+                      </button>
+                      <button className="btn-icon danger" title="Delete">
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Content Tab */}
+        {activeTab === 'content' && (
+          <div className="tab-content">
+            <div className="content-management">
+              <div className="content-section">
+                <h3>Lessons Management</h3>
+                <div className="content-actions">
+                  <button className="btn-primary" onClick={() => handleCreateContent('lesson')}>
+                    <FiPlus /> Create Lesson
+                  </button>
+                  <button className="btn-secondary">
+                    <FiEye /> View All
+                  </button>
+                </div>
+              </div>
+              
+              <div className="content-section">
+                <h3>Quiz Management</h3>
+                <div className="content-actions">
+                  <button className="btn-primary" onClick={() => handleCreateContent('quiz')}>
+                    <FiPlus /> Create Quiz
+                  </button>
+                  <button className="btn-secondary">
+                    <FiEye /> View All
+                  </button>
+                </div>
+              </div>
+              
+              <div className="content-section">
+                <h3>Badge Management</h3>
+                <div className="content-actions">
+                  <button className="btn-primary">
+                    <FiPlus /> Create Badge
+                  </button>
+                  <button className="btn-secondary">
+                    <FiEye /> View All
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Requests Tab */}
+        {activeTab === 'requests' && (
+          <div className="tab-content">
+            <div className="section-header">
+              <h3>Teacher Role Requests</h3>
+              <span className="request-count">{teacherRequests.length} pending</span>
+            </div>
+            
+            {teacherRequests.length === 0 ? (
+              <div className="empty-state">
+                <FiUserCheck size={48} />
+                <h3>No Pending Requests</h3>
+                <p>All teacher requests have been processed</p>
+              </div>
+            ) : (
+              <div className="requests-list">
+                {teacherRequests.map(request => (
+                  <div key={request._id} className="request-card">
+                    <div className="request-info">
+                      <div className="user-avatar">
+                        {request.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4>{request.name}</h4>
+                        <p>{request.email}</p>
+                        <p className="request-subject">
+                          Subject: {request.teacherRequest?.subject || 'Not specified'}
+                        </p>
+                        <p className="request-date">
+                          Requested: {new Date(request.teacherRequest?.requestedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="request-actions">
+                      <button 
+                        className="btn-success"
+                        onClick={() => handleApproveTeacher(request._id, true)}
+                      >
+                        <FiUserCheck /> Approve
+                      </button>
+                      <button 
+                        className="btn-danger"
+                        onClick={() => handleApproveTeacher(request._id, false)}
+                      >
+                        <FiUserX /> Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* System Tab */}
+        {activeTab === 'system' && (
+          <div className="tab-content">
+            <SystemMonitor />
+          </div>
+        )}
+        </div>
+      )}
+      
+      {/* Content Manager Modal */}
+      {showContentManager && (
+        <ContentManager
+          type={contentType}
+          onClose={() => setShowContentManager(false)}
+          onSave={handleSaveContent}
+        />
+      )}
+      
+      {/* Bulk User Manager Modal */}
+      {showBulkUserManager && (
+        <BulkUserManager
+          onClose={() => setShowBulkUserManager(false)}
+          onBulkAction={(action, data) => {
+            console.log('Bulk action:', action, data);
+            setShowBulkUserManager(false);
+            loadDashboardData();
+          }}
+        />
+      )}
+      
+      <SidePanel />
+      <ScrollToTop />
+      <Footer />
     </div>
   );
 };

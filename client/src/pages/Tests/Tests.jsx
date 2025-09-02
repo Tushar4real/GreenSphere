@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
 import { FiFileText, FiPlay, FiClock, FiAward, FiUser, FiArrowLeft } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import apiService from '../../services/apiService';
 import './Tests.css';
 
 const Tests = () => {

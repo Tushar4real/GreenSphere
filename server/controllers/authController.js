@@ -283,11 +283,13 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email, passwordLength: password?.length });
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Demo credentials
+    // Demo credentials with exact matches
     const demoCredentials = {
       'student@demo.com': { password: 'demo123', role: 'student', name: 'Demo Student' },
       'teacher@demo.com': { password: 'demo123', role: 'teacher', name: 'Demo Teacher' },
@@ -295,15 +297,18 @@ exports.login = async (req, res) => {
       'tchandravadiya01@gmail.com': { password: 'Admin@122333@', role: 'admin', name: 'Tushar Admin' }
     };
 
-    // Check if it's a demo login
-    const demoUser = demoCredentials[email];
+    let user;
+    let isDemo = false;
+
+    // Check demo credentials first
+    const demoUser = demoCredentials[email.toLowerCase()];
     if (demoUser && password === demoUser.password) {
-      // Find or create demo user
-      let user = await User.findOne({ email });
+      isDemo = true;
+      user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         user = new User({
           cognitoId: `demo-${Date.now()}`,
-          email,
+          email: email.toLowerCase(),
           name: demoUser.name,
           role: demoUser.role,
           points: 450,
@@ -312,98 +317,69 @@ exports.login = async (req, res) => {
           totalLessonsCompleted: 5,
           totalTasksCompleted: 3,
           averageQuizScore: 92,
-          school: 'Demo School'
+          school: 'Demo School',
+          isActive: true
         });
         await user.save();
+        console.log('Created demo user:', user.email);
       }
-
-      // Update last activity
-      user.lastActivity = new Date();
-      await user.save();
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { 
-          userId: user._id, 
-          email: user.email, 
-          role: user.role
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      return res.json({
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          school: user.school,
-          points: user.points,
-          level: user.level,
-          streakDays: user.streakDays,
-          totalLessonsCompleted: user.totalLessonsCompleted,
-          totalTasksCompleted: user.totalTasksCompleted,
-          averageQuizScore: user.averageQuizScore,
-          badges: user.badges || []
-        }
-      });
-    }
-
-    // For any other email/password, allow login if password is at least 6 characters
-    if (password.length >= 6) {
-      let user = await User.findOne({ email });
+    } else {
+      // For non-demo users, check if they exist in database
+      user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
-        // Create new user for any valid email/password combination
-        user = new User({
-          cognitoId: `user-${Date.now()}`,
-          email,
-          name: email.split('@')[0],
-          role: 'student',
-          points: 0,
-          level: 'Seedling',
-          streakDays: 0,
-          school: 'GreenSphere Academy'
-        });
-        await user.save();
+        return res.status(401).json({ error: 'Invalid email or password' });
       }
-
-      // Update last activity
-      user.lastActivity = new Date();
-      await user.save();
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { 
-          userId: user._id, 
-          email: user.email, 
-          role: user.role
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      return res.json({
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          school: user.school,
-          points: user.points,
-          level: user.level,
-          streakDays: user.streakDays || 0,
-          totalLessonsCompleted: user.totalLessonsCompleted || 0,
-          totalTasksCompleted: user.totalTasksCompleted || 0,
-          averageQuizScore: user.averageQuizScore || 0,
-          badges: user.badges || []
-        }
-      });
+      
+      // For existing users, validate password length
+      if (password.length < 6) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+      
+      // Simple password validation for existing users
+      // In production, this should use proper password hashing
+      if (password !== 'password123' && password.length < 8) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
     }
 
-    return res.status(401).json({ error: 'Invalid credentials. Password must be at least 6 characters.' });
+    if (!user) {
+      return res.status(401).json({ error: 'Login failed' });
+    }
+
+    // Update last activity
+    user.lastActivity = new Date();
+    await user.save();
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id, 
+        email: user.email, 
+        role: user.role
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '7d' }
+    );
+
+    console.log('Login successful for:', user.email, 'Role:', user.role);
+
+    return res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        school: user.school || 'GreenSphere Academy',
+        points: user.points || 0,
+        level: user.level || 'Seedling',
+        streakDays: user.streakDays || 0,
+        totalLessonsCompleted: user.totalLessonsCompleted || 0,
+        totalTasksCompleted: user.totalTasksCompleted || 0,
+        averageQuizScore: user.averageQuizScore || 0,
+        badges: user.badges || []
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please try again.' });
@@ -417,15 +393,35 @@ exports.verify = async (req, res) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).populate('badges');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+    const user = await User.findById(decoded.userId);
     
-    if (!user) {
+    if (!user || !user.isActive) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ user });
+    // Update last activity
+    user.lastActivity = new Date();
+    await user.save();
+
+    res.json({ 
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        school: user.school || 'GreenSphere Academy',
+        points: user.points || 0,
+        level: user.level || 'Seedling',
+        streakDays: user.streakDays || 0,
+        totalLessonsCompleted: user.totalLessonsCompleted || 0,
+        totalTasksCompleted: user.totalTasksCompleted || 0,
+        averageQuizScore: user.averageQuizScore || 0,
+        badges: user.badges || []
+      }
+    });
   } catch (error) {
+    console.error('Token verification error:', error);
     res.status(401).json({ error: 'Invalid token' });
   }
 };

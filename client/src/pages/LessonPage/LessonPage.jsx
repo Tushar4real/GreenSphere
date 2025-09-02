@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
 import { FiArrowLeft, FiArrowRight, FiCheck, FiX, FiHome } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import apiService from '../../services/apiService';
 import { triggerPointsAnimation } from '../../utils/pointsAnimation';
 // Fallback for when apiService is not available
 const safeApiCall = async (apiCall, fallback) => {

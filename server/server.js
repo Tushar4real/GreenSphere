@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -29,6 +30,12 @@ app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/competitions', require('./routes/competitions'));
 app.use('/api/real-world-tasks', require('./routes/realWorldTasks'));
 app.use('/api/teacher', require('./routes/teacher'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/content', require('./routes/content'));
+app.use('/api/bulk-users', require('./routes/bulkUsers'));
+app.use('/api/community', require('./routes/community'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/news', require('./routes/news'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/greensphere')
@@ -40,7 +47,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server running', timestamp: new Date().toISOString() });
 });
 
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

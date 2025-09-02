@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
-import { FiUpload, FiCamera, FiAward, FiArrowLeft, FiCheck, FiClock, FiX } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import { FiUpload, FiCamera, FiAward, FiArrowLeft, FiCheck, FiClock, FiX, FiShare2 } from 'react-icons/fi';
+import apiService from '../../services/apiService';
 import { triggerPointsAnimation } from '../../utils/pointsAnimation';
 import './RealWorldTasks.css';
 
@@ -88,6 +88,27 @@ const RealWorldTasks = () => {
       case 'pending': return '#ffc107';
       case 'rejected': return '#dc3545';
       default: return '#6c757d';
+    }
+  };
+
+  const shareTask = async (submission) => {
+    try {
+      const shareData = {
+        title: `I completed: ${submission.task.title}`,
+        text: `Just earned ${submission.pointsAwarded} points and the ${submission.task.badge.name} badge on GreenSphere! 🌱`,
+        url: window.location.origin
+      };
+      
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for browsers without Web Share API
+        const text = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+        await navigator.clipboard.writeText(text);
+        alert('Achievement copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
     }
   };
 
@@ -212,6 +233,12 @@ const RealWorldTasks = () => {
                     {submission.status === 'approved' && (
                       <div className="reward-earned">
                         <FiAward /> Earned: {submission.pointsAwarded} Impact Points + {submission.task.badge.name} badge
+                        <button 
+                          className="btn-share"
+                          onClick={() => shareTask(submission)}
+                        >
+                          <FiShare2 /> Share
+                        </button>
                       </div>
                     )}
                     

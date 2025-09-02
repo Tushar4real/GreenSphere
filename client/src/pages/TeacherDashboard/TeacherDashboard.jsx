@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
-import { FiUsers, FiFileText, FiCheck, FiX, FiPlus, FiEye, FiAward } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import { FiUsers, FiFileText, FiCheck, FiX, FiPlus, FiEye, FiAward, FiBookOpen, FiTarget, FiTrendingUp, FiBell } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import SidePanel from '../../components/SidePanel/SidePanel';
+import ScrollToTop from '../../components/ScrollToTop/ScrollToTop';
+import Footer from '../../components/Footer/Footer';
+import apiService from '../../services/apiService';
 import './TeacherDashboard.css';
 
 const TeacherDashboard = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { user, refreshUserData } = useAuth();
+  const navigate = useNavigate();
   const [taskSubmissions, setTaskSubmissions] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTest, setShowCreateTest] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalStudents: 0,
+    pendingSubmissions: 0,
+    approvedTasks: 0,
+    totalPoints: 0
+  });
   const [newTest, setNewTest] = useState({
     title: '',
     description: '',
@@ -21,7 +31,7 @@ const TeacherDashboard = () => {
     minScore: 80,
     maxAttempts: 3
   });
-  const [studentCount, setStudentCount] = useState(0);
+
 
   useEffect(() => {
     loadTeacherData();
@@ -30,20 +40,35 @@ const TeacherDashboard = () => {
   const loadTeacherData = async () => {
     try {
       setLoading(true);
-      const [submissionsRes, studentsRes, countRes] = await Promise.all([
+      const [submissionsRes, studentsRes, statsRes] = await Promise.all([
         safeApiCall(() => apiService.task.getPendingSubmissions(), []),
         safeApiCall(() => apiService.teacher.getStudents(), []),
-        safeApiCall(() => apiService.teacher.getStudentCount(), { count: 0 })
+        safeApiCall(() => apiService.teacher.getTeacherStats(), {})
       ]);
       
-      setTaskSubmissions(submissionsRes.data || mockSubmissions);
-      setStudents(studentsRes.data || mockStudents);
-      setStudentCount(countRes.data?.count || studentsRes.data?.length || 0);
+      const submissions = submissionsRes.data || mockSubmissions;
+      const studentsList = studentsRes.data || mockStudents;
+      
+      setTaskSubmissions(submissions);
+      setStudents(studentsList);
+      setDashboardStats({
+        totalStudents: studentsList.length,
+        pendingSubmissions: submissions.length,
+        approvedTasks: statsRes.data?.approvedTasks || 0,
+        totalPoints: statsRes.data?.totalPointsAwarded || 0
+      });
+      
+      await refreshUserData();
     } catch (error) {
       console.error('Error loading teacher data:', error);
       setTaskSubmissions(mockSubmissions);
       setStudents(mockStudents);
-      setStudentCount(mockStudents.length);
+      setDashboardStats({
+        totalStudents: mockStudents.length,
+        pendingSubmissions: mockSubmissions.length,
+        approvedTasks: 15,
+        totalPoints: 750
+      });
     } finally {
       setLoading(false);
     }
@@ -536,57 +561,154 @@ const TeacherDashboard = () => {
     </div>
   );
 
+  const mainFeatures = [
+    {
+      icon: FiFileText,
+      title: 'Reviews',
+      description: `${taskSubmissions.length} pending`,
+      action: () => setActiveTab('submissions'),
+      color: '#28a745'
+    },
+    {
+      icon: FiUsers,
+      title: 'Students',
+      description: `${dashboardStats.totalStudents} total`,
+      action: () => setActiveTab('students'),
+      color: '#20c997'
+    },
+    {
+      icon: FiPlus,
+      title: 'Create Test',
+      description: 'New assessment',
+      action: () => setShowCreateTest(true),
+      color: '#ffc107'
+    },
+    {
+      icon: FiAward,
+      title: 'Approved',
+      description: `${dashboardStats.approvedTasks} tasks`,
+      action: () => setActiveTab('overview'),
+      color: '#fd7e14'
+    },
+    {
+      icon: FiTrendingUp,
+      title: 'Analytics',
+      description: 'View progress',
+      action: () => navigate('/analytics'),
+      color: '#6f42c1'
+    },
+    {
+      icon: FiBell,
+      title: 'Notifications',
+      description: 'Stay updated',
+      action: () => navigate('/notifications'),
+      color: '#17a2b8'
+    }
+  ];
+
   if (loading) {
     return (
-      <div className="teacher-dashboard">
+      <div className="homepage">
         <Navbar />
-        <div className="dashboard-container">
-          <div className="loading-spinner">Loading teacher dashboard...</div>
-        </div>
+        <div className="loading-spinner">Loading teacher dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="teacher-dashboard">
+    <div className="homepage">
       <Navbar />
+
       
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>Teacher Dashboard</h1>
-          <p>Manage student submissions and create assessments</p>
-        </div>
-
-        <div className="dashboard-tabs">
-          <button 
-            className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            <FiUsers /> Overview
-          </button>
-          <button 
-            className={`tab ${activeTab === 'submissions' ? 'active' : ''}`}
-            onClick={() => setActiveTab('submissions')}
-          >
-            <FiFileText /> Task Reviews
-            {taskSubmissions.length > 0 && (
-              <span className="tab-badge">{taskSubmissions.length}</span>
-            )}
-          </button>
-          <button 
-            className={`tab ${activeTab === 'students' ? 'active' : ''}`}
-            onClick={() => setActiveTab('students')}
-          >
-            <FiUsers /> Students
-          </button>
-        </div>
-
-        <div className="dashboard-content">
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'submissions' && renderSubmissions()}
-          {activeTab === 'students' && renderStudents()}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1>🌱 Welcome, Teacher {user?.name?.split(' ')[0]}!</h1>
+          <p>Guide your students on their environmental journey</p>
+          <div className="user-stats">
+            <div className="stat" onClick={() => setActiveTab('students')}>
+              <span className="stat-number">{dashboardStats.totalStudents}</span>
+              <span className="stat-label">🎆 Students</span>
+            </div>
+            <div className="stat" onClick={() => setActiveTab('submissions')}>
+              <span className="stat-number">{dashboardStats.pendingSubmissions}</span>
+              <span className="stat-label">📝 Pending</span>
+            </div>
+            <div className="stat" onClick={() => setActiveTab('overview')}>
+              <span className="stat-number">{dashboardStats.approvedTasks}</span>
+              <span className="stat-label">✅ Approved</span>
+            </div>
+          </div>
+          
+          <div className="level-progress">
+            <div className="progress-bar-container">
+              <div className="progress-label">Student engagement this month</div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width: `${Math.min(100, (dashboardStats.totalPoints / 10))}%`}}></div>
+              </div>
+              <div className="progress-text">{dashboardStats.totalPoints} points awarded</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div className="main-features-grid">
+        {mainFeatures.map((feature, index) => (
+          <div 
+            key={index}
+            className="main-feature-card"
+            onClick={feature.action}
+            style={{ 
+              '--feature-color': feature.color,
+              animationDelay: `${index * 0.1}s`
+            }}
+          >
+            <div className="main-feature-icon">
+              <feature.icon />
+            </div>
+            <h3>{feature.title}</h3>
+            <p>{feature.description}</p>
+            <div className="main-feature-badge">
+              {feature.title === 'Reviews' && '📝'}
+              {feature.title === 'Students' && '👥'}
+              {feature.title === 'Create Test' && '➕'}
+              {feature.title === 'Approved' && '✅'}
+              {feature.title === 'Analytics' && '📈'}
+              {feature.title === 'Notifications' && '🔔'}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="quick-actions">
+        <h2>🚀 Empower Your Students!</h2>
+        <div className="action-buttons">
+          <button 
+            className="action-btn primary"
+            onClick={() => setActiveTab('submissions')}
+          >
+            📝 Review Submissions
+          </button>
+          <button 
+            className="action-btn secondary"
+            onClick={() => setShowCreateTest(true)}
+          >
+            ➕ Create Assessment
+          </button>
+        </div>
+        
+        <div className="motivational-text">
+          <p>🌍 Inspiring the next generation of eco-warriors! 🌱</p>
+        </div>
+      </div>
+      
+      {/* Render modals and detailed views when needed */}
+      {activeTab === 'submissions' && renderSubmissions()}
+      {activeTab === 'students' && renderStudents()}
+      {activeTab === 'overview' && renderOverview()}
+      
+      <SidePanel />
+      <ScrollToTop />
+      <Footer />
     </div>
   );
 };

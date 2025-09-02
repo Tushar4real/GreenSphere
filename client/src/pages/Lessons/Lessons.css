@@ -88,6 +88,34 @@
   border: 2px solid transparent;
 }
 
+.lesson-card.fade-out {
+  opacity: 0.3;
+  transform: translateY(30px);
+  filter: blur(2px);
+  transition: all 0.6s ease-out;
+}
+
+.lesson-card.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition: all 0.6s ease-out;
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0.3;
+    transform: translateY(30px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 .lesson-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);

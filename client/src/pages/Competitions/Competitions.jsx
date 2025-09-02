@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
 import { FiAward, FiUsers, FiCalendar, FiArrowLeft } from 'react-icons/fi';
-import apiService from '../../utils/apiService';
+import apiService from '../../services/apiService';
 import './Competitions.css';
 
 const Competitions = () => {

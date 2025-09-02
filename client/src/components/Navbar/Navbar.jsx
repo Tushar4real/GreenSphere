@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { FiSun, FiMoon, FiLogOut, FiUser, FiAward, FiSettings, FiSave, FiX } from 'react-icons/fi';
+import { FiSun, FiMoon, FiLogOut, FiUser, FiAward, FiSettings, FiSave, FiX, FiMenu } from 'react-icons/fi';
 import FlyingPoints from '../FlyingPoints/FlyingPoints';
 import './Navbar.css';
 
@@ -13,6 +13,7 @@ const Navbar = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [flyingPoints, setFlyingPoints] = useState([]);
   const [editForm, setEditForm] = useState({
     name: user?.name || '',
@@ -49,22 +50,6 @@ const Navbar = () => {
       </div>
       
       <div className="navbar-content">
-        {user && (
-          <div className="user-info">
-            <div className="streak-display">
-              <span className="streak-icon">🔥</span>
-              <span className="streak-text">{user.streakDays || 7}</span>
-            </div>
-            <div className="points-display" id="navbar-points">
-              <FiAward className="points-icon" />
-              <span className="points-text">{user.points || 450}</span>
-            </div>
-            <div className="beginner-badge" onClick={() => setShowBadgeModal(true)}>
-              <span className="badge-icon">🌱</span>
-            </div>
-          </div>
-        )}
-        
         <div className="navbar-actions">
           <button 
             className="theme-toggle"
@@ -74,19 +59,38 @@ const Navbar = () => {
             {isDark ? <FiSun /> : <FiMoon />}
           </button>
           
+          <button 
+            className="menu-toggle"
+            onClick={() => setShowMenu(!showMenu)}
+            title="Menu"
+          >
+            <FiMenu />
+          </button>
+          
           {user && (
-            <>
-              <button 
-                className="profile-btn"
-                onClick={() => setShowProfile(true)}
-                title="Profile"
-              >
-                <FiUser />
-              </button>
-            </>
+            <button 
+              className="profile-btn"
+              onClick={() => setShowProfile(true)}
+              title="Profile"
+            >
+              <FiUser />
+            </button>
           )}
         </div>
       </div>
+      
+      {/* Mobile Menu */}
+      {showMenu && (
+        <div className="mobile-menu">
+          <div className="menu-item" onClick={() => { navigate('/home'); setShowMenu(false); }}>🏠 Home</div>
+          <div className="menu-item" onClick={() => { navigate('/lessons'); setShowMenu(false); }}>📚 Learn</div>
+          <div className="menu-item" onClick={() => { navigate('/real-world-tasks'); setShowMenu(false); }}>🎯 Tasks</div>
+          <div className="menu-item" onClick={() => { navigate('/community'); setShowMenu(false); }}>🌍 Community</div>
+          <div className="menu-item" onClick={() => { navigate('/badges'); setShowMenu(false); }}>🏆 Badges</div>
+          <div className="menu-item" onClick={() => { navigate('/leaderboard'); setShowMenu(false); }}>🏆 Leaderboard</div>
+          <div className="menu-item" onClick={() => { navigate('/news'); setShowMenu(false); }}>📰 News</div>
+        </div>
+      )}
       
       {/* Profile Modal */}
       {showProfile && (
