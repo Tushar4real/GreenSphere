@@ -403,7 +403,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log('🔐 Login attempt:', { email, passwordLength: password?.length });
+    console.log('🔐 Login attempt:', { email: encodeURIComponent(email), passwordLength: password?.length });
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -425,7 +425,7 @@ exports.login = async (req, res) => {
     // Check demo credentials first
     const demoUser = demoCredentials[normalizedEmail];
     if (demoUser && password === demoUser.password) {
-      console.log('✅ Demo user login:', normalizedEmail);
+      console.log('✅ Demo user login:', encodeURIComponent(normalizedEmail));
       isAuthenticated = true;
       
       // Find or create demo user in database
@@ -446,13 +446,13 @@ exports.login = async (req, res) => {
           isActive: true
         });
         await user.save();
-        console.log('📝 Created demo user:', user.email);
+        console.log('📝 Created demo user:', encodeURIComponent(user.email));
       }
     } else {
       // Check registered users
       user = await User.findOne({ email: normalizedEmail, isActive: true });
       if (!user) {
-        console.log('❌ User not found:', normalizedEmail);
+        console.log('❌ User not found:', encodeURIComponent(normalizedEmail));
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
@@ -493,7 +493,7 @@ exports.login = async (req, res) => {
     }
 
     if (!isAuthenticated) {
-      console.log('❌ Authentication failed for:', normalizedEmail);
+      console.log('❌ Authentication failed for:', encodeURIComponent(normalizedEmail));
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -502,6 +502,12 @@ exports.login = async (req, res) => {
     await user.save();
 
     // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('❌ JWT_SECRET environment variable is not set');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
     const token = jwt.sign(
       { 
         userId: user._id, 
@@ -509,11 +515,11 @@ exports.login = async (req, res) => {
         role: user.role,
         cognitoId: user.cognitoId
       },
-      process.env.JWT_SECRET || 'fallback-secret-key',
+      jwtSecret,
       { expiresIn: '7d' }
     );
 
-    console.log('🎉 Login successful for:', user.email, 'Role:', user.role);
+    console.log('🎉 Login successful for:', encodeURIComponent(user.email), 'Role:', user.role);
 
     return res.json({
       token,
@@ -545,7 +551,12 @@ exports.verify = async (req, res) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
+    const decoded = jwt.verify(token, jwtSecret);
     const user = await User.findById(decoded.userId);
     
     if (!user || !user.isActive) {

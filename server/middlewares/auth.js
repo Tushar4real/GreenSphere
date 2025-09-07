@@ -9,8 +9,47 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    let decoded;
+    let user;
+    
+    try {
+      // Try JWT first (for local tokens)
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+      user = await User.findById(decoded.userId);
+    } catch (jwtError) {
+      // Try Cognito token (base64 decode)
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+          user = await User.findOne({ email: payload.email });
+          
+          if (!user) {
+            // Create user if doesn't exist (for Cognito users)
+            let role = 'student';
+            if (payload.email === 'tchandravadiya01@gmail.com') role = 'admin';
+            
+            user = new User({
+              cognitoId: payload.sub,
+              email: payload.email,
+              name: payload.name || payload.email.split('@')[0],
+              role: role
+            });
+            await user.save();
+          } else {
+            // Update admin role if needed
+            if (payload.email === 'tchandravadiya01@gmail.com' && user.role !== 'admin') {
+              user.role = 'admin';
+              await user.save();
+            }
+          }
+        } else {
+          throw new Error('Invalid token format');
+        }
+      } catch (cognitoError) {
+        return res.status(401).json({ error: 'Invalid token format.' });
+      }
+    }
     
     if (!user || !user.isActive) {
       return res.status(401).json({ error: 'Invalid token or user deactivated.' });
@@ -25,7 +64,7 @@ const auth = async (req, res, next) => {
     };
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token.' });
+    res.status(401).json({ error: 'Authentication failed.' });
   }
 };
 

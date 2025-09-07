@@ -109,17 +109,17 @@ exports.getStats = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
+    console.log('Getting all users, user role:', req.user?.role);
+    
     const users = await User.find()
       .select('-cognitoId')
       .populate('badges', 'name icon')
       .sort({ createdAt: -1 });
 
+    console.log('Found users:', users.length);
     res.json(users);
   } catch (error) {
+    console.error('Error getting users:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -174,6 +174,40 @@ exports.awardBonusPoints = async (req, res) => {
     await user.save();
 
     res.json({ message: 'Bonus points awarded', user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createUser = async (req, res) => {
+  try {
+    const userData = req.body;
+    const user = new User(userData);
+    await user.save();
+
+    res.status(201).json({ message: 'User created successfully', user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'User updated successfully', user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

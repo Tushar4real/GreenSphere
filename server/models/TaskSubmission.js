@@ -21,4 +21,4 @@ const taskSubmissionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('TaskSubmission', taskSubmissionSchema);
+module.exports = mongoose.models.TaskSubmission || mongoose.model('TaskSubmission', taskSubmissionSchema);

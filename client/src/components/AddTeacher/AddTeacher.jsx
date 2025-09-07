@@ -20,7 +20,16 @@ const AddTeacher = ({ onClose, onTeacherAdded }) => {
     setError('');
 
     try {
-      await apiService.admin.addTeacher(formData);
+      const teacherData = {
+        ...formData,
+        role: 'teacher',
+        cognitoId: 'teacher-' + Date.now(),
+        isActive: true,
+        points: 0,
+        level: 'Educator'
+      };
+      
+      await apiService.post('/users', teacherData);
       
       if (onTeacherAdded) {
         onTeacherAdded();

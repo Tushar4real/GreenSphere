@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiBookOpen, FiAward, FiUsers, FiTrendingUp, FiTarget, FiSettings, FiBell } from 'react-icons/fi';
+import { FiBookOpen, FiAward, FiUsers, FiTrendingUp, FiTarget, FiSettings, FiBell, FiHelpCircle } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import SidePanel from '../../components/SidePanel/SidePanel';
 import ScrollToTop from '../../components/ScrollToTop/ScrollToTop';
 import Footer from '../../components/Footer/Footer';
 import TeacherRequestBar from '../../components/TeacherRequestBar/TeacherRequestBar';
+import GamificationDashboard from '../../components/GamificationDashboard/GamificationDashboard';
+import QuizCard from '../../components/QuizCard/QuizCard';
+import { environmentalQuizzes } from '../../data/quizData';
 import apiService from '../../services/apiService';
 import '../HomePage/HomePage.css';
 
@@ -21,60 +24,59 @@ const StudentDashboard = () => {
     notifications: []
   });
   const [loading, setLoading] = useState(true);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [completedQuizzes, setCompletedQuizzes] = useState([]);
+  const [userPoints, setUserPoints] = useState(user?.points || 0);
 
   const mainFeatures = [
     {
       icon: FiBookOpen,
       title: 'Learn',
-      description: 'Interactive lessons',
       path: '/lessons',
-      color: '#28a745',
-      priority: 'high'
+      color: '#28a745'
     },
     {
       icon: FiTarget,
       title: 'Tasks',
-      description: 'Real-world activities',
       path: '/real-world-tasks',
-      color: '#20c997',
-      priority: 'high'
+      color: '#20c997'
     },
     {
       icon: FiTrendingUp,
       title: 'Leaderboard',
-      description: 'See rankings',
       path: '/leaderboard',
-      color: '#6f42c1',
-      priority: 'normal'
+      color: '#6f42c1'
     },
     {
       icon: FiUsers,
       title: 'Community',
-      description: 'Connect with others',
       path: '/community',
-      color: '#fd7e14',
-      priority: 'normal'
+      color: '#fd7e14'
     },
     {
       icon: FiBell,
       title: 'News',
-      description: 'Latest updates',
       path: '/news',
-      color: '#17a2b8',
-      priority: 'normal'
+      color: '#17a2b8'
     },
     {
       icon: FiAward,
       title: 'Badges',
-      description: 'Earn rewards',
       path: '/badges',
-      color: '#ffc107',
-      priority: 'normal'
-    }
+      color: '#ffc107'
+    },
+
   ];
 
   useEffect(() => {
     loadDashboardData();
+    
+    // Set up real-time data refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadDashboardData = async () => {
@@ -103,14 +105,18 @@ const StudentDashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="homepage">
-        <Navbar />
-        <div className="loading-spinner">Loading your dashboard...</div>
-      </div>
-    );
-  }
+  const handleQuizComplete = (result) => {
+    setCompletedQuizzes([...completedQuizzes, result.quizId]);
+    setUserPoints(userPoints + result.points);
+    setSelectedQuiz(null);
+    
+    // Show success message
+    alert(`Quiz completed! You earned ${result.points} points. ${result.passed ? 'Congratulations!' : 'Try again to get full points!'}`);
+  };
+
+
+
+
 
   return (
     <div className="homepage">
@@ -121,30 +127,6 @@ const StudentDashboard = () => {
         <div className="hero-content">
           <h1>🌱 Welcome back, {user?.name?.split(' ')[0]}!</h1>
           <p>Continue your environmental journey</p>
-          <div className="user-stats">
-            <div className="stat" onClick={() => navigate('/badges')}>
-              <span className="stat-number">{user?.points || 0}</span>
-              <span className="stat-label">🎆 Points</span>
-            </div>
-            <div className="stat" onClick={() => navigate('/leaderboard')}>
-              <span className="stat-number">{user?.level || 'Beginner'}</span>
-              <span className="stat-label">🌿 Level</span>
-            </div>
-            <div className="stat" onClick={() => navigate('/community')}>
-              <span className="stat-number">{user?.streakDays || 0}</span>
-              <span className="stat-label">🔥 Streak</span>
-            </div>
-          </div>
-          
-          <div className="level-progress">
-            <div className="progress-bar-container">
-              <div className="progress-label">Progress to next level</div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: `${Math.min(100, ((user?.points || 0) % 100))}%`}}></div>
-              </div>
-              <div className="progress-text">{(user?.points || 0) % 100}/100 XP</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -152,7 +134,7 @@ const StudentDashboard = () => {
         {mainFeatures.map((feature, index) => (
           <div 
             key={index}
-            className={`main-feature-card ${feature.priority === 'high' ? 'priority-high' : ''}`}
+            className="main-feature-card"
             onClick={() => navigate(feature.path)}
             style={{ 
               '--feature-color': feature.color,
@@ -163,47 +145,19 @@ const StudentDashboard = () => {
               <feature.icon />
             </div>
             <h3>{feature.title}</h3>
-            <p>{feature.description}</p>
-            {feature.priority === 'high' && (
-              <div className="priority-badge">Priority</div>
-            )}
-            <div className="main-feature-badge">
-              {feature.title === 'Learn' && '📚'}
-              {feature.title === 'Tasks' && '🎯'}
-              {feature.title === 'Badges' && '🏆'}
-              {feature.title === 'Community' && '🌍'}
-              {feature.title === 'Leaderboard' && '🏅'}
-              {feature.title === 'News' && '📰'}
-            </div>
           </div>
         ))}
       </div>
 
-      <div className="quick-actions">
-        <h2>🚀 Ready to Save the Planet?</h2>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => navigate('/lessons')}
-          >
-            📚 Continue Learning
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => navigate('/real-world-tasks')}
-          >
-            🎯 Take Action
-          </button>
-        </div>
-        
-        <div className="motivational-text">
-          <p>🌍 Every small action makes a big difference! 🌱</p>
-        </div>
+      {/* Gamification Dashboard */}
+      <div className="dashboard-section">
+        <GamificationDashboard user={user} />
       </div>
-      
+
+
+
       <SidePanel />
       <ScrollToTop />
-      <TeacherRequestBar user={user} onRequestSubmitted={refreshUserData} />
       <Footer />
     </div>
   );

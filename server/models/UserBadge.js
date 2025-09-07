@@ -14,4 +14,4 @@ const userBadgeSchema = new mongoose.Schema({
 // Ensure user can only earn each badge once
 userBadgeSchema.index({ user: 1, badge: 1 }, { unique: true });
 
-module.exports = mongoose.model('UserBadge', userBadgeSchema);
+module.exports = mongoose.models.UserBadge || mongoose.model('UserBadge', userBadgeSchema);

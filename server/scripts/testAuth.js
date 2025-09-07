@@ -54,7 +54,7 @@ async function testRegistration() {
     return { email, password };
     
   } catch (error) {
-    console.error('❌ Registration failed:', error.response?.data?.error || error.message);
+    console.error('❌ Registration failed:', encodeURIComponent(error.response?.data?.error || error.message));
     return null;
   }
 }
@@ -82,7 +82,7 @@ async function testLogin(credentials) {
     return response.data.token;
     
   } catch (error) {
-    console.error('❌ Login failed:', error.response?.data?.error || error.message);
+    console.error('❌ Login failed:', encodeURIComponent(error.response?.data?.error || error.message));
     return null;
   }
 }
@@ -102,7 +102,7 @@ async function testTokenVerification(token) {
     return true;
     
   } catch (error) {
-    console.error('❌ Token verification failed:', error.response?.data?.error || error.message);
+    console.error('❌ Token verification failed:', encodeURIComponent(error.response?.data?.error || error.message));
     return false;
   }
 }
@@ -129,7 +129,7 @@ async function testDemoLogin() {
       console.log('🎭 Role:', response.data.user.role);
       
     } catch (error) {
-      console.error(`❌ ${account.role} demo login failed:`, error.response?.data?.error || error.message);
+      console.error(`❌ ${account.role} demo login failed:`, encodeURIComponent(error.response?.data?.error || error.message));
     }
   }
 }
@@ -193,14 +193,14 @@ async function main() {
 
 // Handle errors
 process.on('unhandledRejection', (error) => {
-  console.error('\n💥 Unhandled error:', error.message);
+  console.error('\n💥 Unhandled error:', encodeURIComponent(error.message));
   rl.close();
   process.exit(1);
 });
 
 // Start the test
 main().catch((error) => {
-  console.error('\n💥 Test failed:', error.message);
+  console.error('\n💥 Test failed:', encodeURIComponent(error.message));
   rl.close();
   process.exit(1);
 });

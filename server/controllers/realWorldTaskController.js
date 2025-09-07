@@ -1,7 +1,7 @@
 const RealWorldTask = require('../models/RealWorldTask');
 const TaskSubmission = require('../models/TaskSubmission');
-const EarnedBadge = require('../models/EarnedBadge');
 const User = require('../models/User');
+const { awardPoints } = require('./gamificationController');
 const multer = require('multer');
 const path = require('path');
 
@@ -45,35 +45,70 @@ exports.getAllTasks = async (req, res) => {
 
 exports.submitTask = async (req, res) => {
   try {
-    const { taskId, description } = req.body;
+    const { taskId, description, impact, location } = req.body;
     const userId = req.user.userId;
     
     const task = await RealWorldTask.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+    if (!task || !task.isAvailable()) {
+      return res.status(404).json({ error: 'Task not found or not available' });
     }
     
-    const proofFiles = req.files.map(file => ({
-      filename: file.filename,
-      originalName: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: file.path
-    }));
+    // Check if already submitted
+    const existing = await TaskSubmission.findOne({
+      user: userId,
+      task: taskId,
+      status: { $in: ['pending', 'approved'] }
+    });
+    
+    if (existing) {
+      return res.status(400).json({ error: 'Task already submitted' });
+    }
+    
+    const proofPhotos = req.files ? req.files.map(file => `/uploads/task-proofs/${file.filename}`) : [];
+    
+    if (task.photoRequired && proofPhotos.length === 0) {
+      return res.status(400).json({ error: 'Photo proof required' });
+    }
     
     const submission = new TaskSubmission({
       user: userId,
       task: taskId,
       description,
-      proofFiles
+      proofPhotos,
+      location: location ? JSON.parse(location) : null,
+      reportedImpact: impact ? JSON.parse(impact) : {},
+      status: task.verificationRequired ? 'pending' : 'approved'
     });
     
     await submission.save();
     
-    res.status(201).json({
-      message: 'Task submitted successfully',
-      submission: submission._id
-    });
+    // Auto-approve if no verification needed
+    if (!task.verificationRequired) {
+      const pointsResult = await awardPoints(
+        userId,
+        task.points,
+        task.ecoPoints,
+        'task_completed',
+        taskId
+      );
+      
+      submission.pointsAwarded = pointsResult.pointsAwarded;
+      submission.ecoPointsAwarded = pointsResult.ecoPointsAwarded;
+      await submission.save();
+      
+      const user = await User.findById(userId);
+      user.totalTasksCompleted += 1;
+      user.totalRealWorldTasksCompleted += 1;
+      await user.save();
+      
+      return res.json({
+        message: 'Task completed!',
+        pointsAwarded: pointsResult.pointsAwarded,
+        newBadges: pointsResult.newBadges
+      });
+    }
+    
+    res.json({ message: 'Task submitted for verification' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -105,70 +140,50 @@ exports.reviewSubmission = async (req, res) => {
       .populate('user')
       .populate('task');
     
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
+    if (!submission || submission.status !== 'pending') {
+      return res.status(404).json({ error: 'Submission not found or already reviewed' });
     }
     
     submission.status = status;
-    submission.feedback = feedback;
-    submission.reviewedBy = reviewerId;
-    submission.reviewedAt = new Date();
+    submission.verificationNotes = feedback;
+    submission.verifiedBy = reviewerId;
+    submission.verifiedAt = new Date();
     
     if (status === 'approved') {
-      // Award impact points (separate from regular points)
-      submission.pointsAwarded = submission.task.points;
-      submission.user.impactPoints += submission.task.points;
-      submission.user.totalRealWorldTasksCompleted += 1;
+      const pointsResult = await awardPoints(
+        submission.user._id,
+        submission.task.points,
+        submission.task.ecoPoints,
+        'task_completed',
+        submission.task._id
+      );
       
-      // Award task-specific badge
-      const earnedBadge = new EarnedBadge({
-        user: submission.user._id,
-        task: submission.task._id,
-        submission: submission._id,
-        badgeName: submission.task.badge.name,
-        badgeIcon: submission.task.badge.icon,
-        badgeDescription: submission.task.badge.description
-      });
+      submission.pointsAwarded = pointsResult.pointsAwarded;
+      submission.ecoPointsAwarded = pointsResult.ecoPointsAwarded;
       
-      await earnedBadge.save();
-      submission.badgeAwarded = true;
-      submission.user.badges.push(earnedBadge._id);
+      const user = submission.user;
+      user.totalTasksCompleted += 1;
+      user.totalRealWorldTasksCompleted += 1;
       
-      // Check for impact point milestone badges
-      const impactBadgeThresholds = [
-        { points: 500, name: 'Earth Defender', icon: '🛡️', description: 'Committed environmental protector' },
-        { points: 1000, name: 'Planet Guardian', icon: '🌍', description: 'Dedicated guardian of our planet' },
-        { points: 2000, name: 'Climate Hero', icon: '🦸', description: 'Hero in the fight against climate change' },
-        { points: 3500, name: 'Eco Legend', icon: '👑', description: 'Legendary environmental champion' },
-        { points: 5000, name: 'Earth Savior', icon: '✨', description: 'Ultimate savior of our planet' }
-      ];
-      
-      const previousImpactPoints = submission.user.impactPoints - submission.task.points;
-      for (const threshold of impactBadgeThresholds) {
-        if (submission.user.impactPoints >= threshold.points && previousImpactPoints < threshold.points) {
-          const milestoneEarnedBadge = new EarnedBadge({
-            user: submission.user._id,
-            task: null,
-            submission: submission._id,
-            badgeName: threshold.name,
-            badgeIcon: threshold.icon,
-            badgeDescription: threshold.description
-          });
-          await milestoneEarnedBadge.save();
-          submission.user.badges.push(milestoneEarnedBadge._id);
-        }
+      // Update impact metrics
+      if (submission.reportedImpact) {
+        user.treesPlanted += submission.reportedImpact.treesPlanted || 0;
+        user.wasteCollected += submission.reportedImpact.wasteCollected || 0;
+        user.energySaved += submission.reportedImpact.energySaved || 0;
+        user.carbonFootprintReduced += submission.reportedImpact.carbonReduced || 0;
       }
       
-      await submission.user.save();
+      await user.save();
+      
+      return res.json({
+        message: 'Task approved!',
+        pointsAwarded: pointsResult.pointsAwarded,
+        newBadges: pointsResult.newBadges
+      });
     }
     
     await submission.save();
-    
-    res.json({
-      message: `Submission ${status} successfully`,
-      pointsAwarded: submission.pointsAwarded,
-      badgeAwarded: submission.badgeAwarded
-    });
+    res.json({ message: `Submission ${status}` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -179,10 +194,31 @@ exports.getUserSubmissions = async (req, res) => {
     const userId = req.user.userId;
     
     const submissions = await TaskSubmission.find({ user: userId })
-      .populate('task', 'title category difficulty points badge')
+      .populate('task')
       .sort({ createdAt: -1 });
     
-    res.json(submissions);
+    const availableTasks = await RealWorldTask.find({ isActive: true });
+    const completedTaskIds = submissions.filter(s => s.status === 'approved').map(s => s.task._id.toString());
+    
+    const tasksWithProgress = availableTasks.map(task => {
+      const submission = submissions.find(s => s.task._id.toString() === task._id.toString());
+      return {
+        ...task.toObject(),
+        isCompleted: completedTaskIds.includes(task._id.toString()),
+        submission: submission || null,
+        canSubmit: task.isAvailable() && !submission
+      };
+    });
+    
+    res.json({
+      tasks: tasksWithProgress,
+      submissions,
+      stats: {
+        total: availableTasks.length,
+        completed: completedTaskIds.length,
+        pending: submissions.filter(s => s.status === 'pending').length
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

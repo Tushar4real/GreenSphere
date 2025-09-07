@@ -12,4 +12,4 @@ const earnedBadgeSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('EarnedBadge', earnedBadgeSchema);
+module.exports = mongoose.models.EarnedBadge || mongoose.model('EarnedBadge', earnedBadgeSchema);

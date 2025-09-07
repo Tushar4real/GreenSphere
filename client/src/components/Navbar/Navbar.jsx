@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { FiSun, FiMoon, FiLogOut, FiUser, FiAward, FiSettings, FiSave, FiX, FiMenu } from 'react-icons/fi';
+import { FiSun, FiMoon, FiLogOut, FiUser, FiAward, FiSettings, FiSave, FiX, FiMenu, FiGlobe, FiStar, FiTrendingUp } from 'react-icons/fi';
+import { HiOutlineSparkles, HiOutlineFire, HiOutlineAcademicCap, HiOutlineMail, HiOutlineOfficeBuilding } from 'react-icons/hi';
 import FlyingPoints from '../FlyingPoints/FlyingPoints';
 import './Navbar.css';
 
@@ -15,12 +16,13 @@ const Navbar = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [flyingPoints, setFlyingPoints] = useState([]);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [editForm, setEditForm] = useState({
     name: user?.name || '',
     email: user?.email || ''
   });
 
-  // Listen for point animations
+  // Listen for point animations and scroll
   useEffect(() => {
     const handlePointsEarned = (event) => {
       const { points, position } = event.detail;
@@ -28,8 +30,16 @@ const Navbar = () => {
       setFlyingPoints(prev => [...prev, { id, points, position }]);
     };
 
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
     window.addEventListener('pointsEarned', handlePointsEarned);
-    return () => window.removeEventListener('pointsEarned', handlePointsEarned);
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('pointsEarned', handlePointsEarned);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const removeFlyingPoints = (id) => {
@@ -44,9 +54,10 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-brand">
-        <h2>🌱 GreenSphere</h2>
+    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
+      <div className="navbar-brand" onClick={() => navigate('/home')}>
+        <FiGlobe className="brand-icon" />
+        <h2>GreenSphere</h2>
       </div>
       
       <div className="navbar-content">
@@ -67,6 +78,16 @@ const Navbar = () => {
             <FiMenu />
           </button>
           
+          {user?.role === 'admin' && (
+            <button 
+              className="admin-btn"
+              onClick={() => navigate('/admin-dashboard')}
+              title="Admin Dashboard"
+            >
+              <FiSettings />
+            </button>
+          )}
+          
           {user && (
             <button 
               className="profile-btn"
@@ -82,13 +103,32 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {showMenu && (
         <div className="mobile-menu">
-          <div className="menu-item" onClick={() => { navigate('/home'); setShowMenu(false); }}>🏠 Home</div>
-          <div className="menu-item" onClick={() => { navigate('/lessons'); setShowMenu(false); }}>📚 Learn</div>
-          <div className="menu-item" onClick={() => { navigate('/real-world-tasks'); setShowMenu(false); }}>🎯 Tasks</div>
-          <div className="menu-item" onClick={() => { navigate('/community'); setShowMenu(false); }}>🌍 Community</div>
-          <div className="menu-item" onClick={() => { navigate('/badges'); setShowMenu(false); }}>🏆 Badges</div>
-          <div className="menu-item" onClick={() => { navigate('/leaderboard'); setShowMenu(false); }}>🏆 Leaderboard</div>
-          <div className="menu-item" onClick={() => { navigate('/news'); setShowMenu(false); }}>📰 News</div>
+          <div className="menu-item" onClick={() => { navigate('/home'); setShowMenu(false); }}>
+            <FiGlobe className="menu-icon" /> Home
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/lessons'); setShowMenu(false); }}>
+            <HiOutlineAcademicCap className="menu-icon" /> Learn
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/real-world-tasks'); setShowMenu(false); }}>
+            <FiStar className="menu-icon" /> Tasks
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/community'); setShowMenu(false); }}>
+            <FiUser className="menu-icon" /> Community
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/badges'); setShowMenu(false); }}>
+            <FiAward className="menu-icon" /> Badges
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/leaderboard'); setShowMenu(false); }}>
+            <FiTrendingUp className="menu-icon" /> Leaderboard
+          </div>
+          <div className="menu-item" onClick={() => { navigate('/news'); setShowMenu(false); }}>
+            <FiSettings className="menu-icon" /> News
+          </div>
+          {user?.role === 'admin' && (
+            <div className="menu-item admin-menu" onClick={() => { navigate('/admin-dashboard'); setShowMenu(false); }}>
+              <FiSettings className="menu-icon" /> Admin Panel
+            </div>
+          )}
         </div>
       )}
       
@@ -109,37 +149,38 @@ const Navbar = () => {
             <div className="profile-content">
               <div className="profile-avatar">
                 <div className="avatar-circle">
-                  {user.name.charAt(0).toUpperCase()}
+                  <FiUser className="avatar-icon" />
+                  <div className="avatar-letter">{user.name.charAt(0).toUpperCase()}</div>
                 </div>
               </div>
               
               <div className="profile-info">
                 <div className="info-item">
-                  <label>Name</label>
+                  <label><FiUser className="info-icon" />Name</label>
                   <span>{user?.name || 'User'}</span>
                 </div>
                 <div className="info-item">
-                  <label>Email</label>
+                  <label><HiOutlineMail className="info-icon" />Email</label>
                   <span>{user?.email || 'user@example.com'}</span>
                 </div>
                 <div className="info-item">
-                  <label>Role</label>
+                  <label><FiAward className="info-icon" />Role</label>
                   <span className="role-badge">{user?.role || 'student'}</span>
                 </div>
                 <div className="info-item">
-                  <label>School</label>
+                  <label><HiOutlineOfficeBuilding className="info-icon" />School</label>
                   <span>{user?.school || 'GreenSphere Academy'}</span>
                 </div>
                 <div className="info-item">
-                  <label>Level</label>
+                  <label><HiOutlineSparkles className="info-icon" />Level</label>
                   <span className="level-badge">{user?.level || 'Seedling'}</span>
                 </div>
                 <div className="info-item">
-                  <label>Total Points</label>
+                  <label><FiStar className="info-icon" />Total Points</label>
                   <span className="points-badge">{user?.points || 0}</span>
                 </div>
                 <div className="info-item">
-                  <label>Streak Days</label>
+                  <label><HiOutlineFire className="info-icon" />Streak Days</label>
                   <span className="streak-badge">{user?.streakDays || 0} days</span>
                 </div>
               </div>
@@ -248,7 +289,7 @@ const Navbar = () => {
           <div className="badge-modal" onClick={(e) => e.stopPropagation()}>
             <div className="badge-modal-content">
               <div className="badge-display">
-                <span className="badge-icon-large">🌱</span>
+                <HiOutlineSparkles className="badge-icon-large" />
                 <h3>Eco Starter</h3>
                 <p>Earn badges make the environment clean</p>
               </div>

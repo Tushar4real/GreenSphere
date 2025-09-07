@@ -101,7 +101,7 @@ const Register = () => {
 
     console.log('🔐 Verifying OTP:', { email: formData.email, otp: otp.substring(0, 2) + '****' });
 
-    const result = await verifyOTP(formData.email.trim(), otp, formData.role);
+    const result = await verifyOTP(formData.email.trim(), otp);
 
     if (result.success) {
       setSuccess(result.message || 'Registration completed successfully!');

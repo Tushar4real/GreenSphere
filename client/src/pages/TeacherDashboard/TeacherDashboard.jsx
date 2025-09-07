@@ -36,39 +36,46 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     loadTeacherData();
+    
+    // Set up real-time data refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadTeacherData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadTeacherData = async () => {
     try {
       setLoading(true);
-      const [submissionsRes, studentsRes, statsRes] = await Promise.all([
-        safeApiCall(() => apiService.task.getPendingSubmissions(), []),
-        safeApiCall(() => apiService.teacher.getStudents(), []),
-        safeApiCall(() => apiService.teacher.getTeacherStats(), {})
+      const [submissionsRes, studentsRes] = await Promise.all([
+        safeApiCall(() => apiService.teacher.getPendingSubmissions(), []),
+        safeApiCall(() => apiService.teacher.getStudents(), [])
       ]);
       
-      const submissions = submissionsRes.data || mockSubmissions;
-      const studentsList = studentsRes.data || mockStudents;
+      const submissions = submissionsRes.data || [];
+      const allUsers = studentsRes.data || [];
+      const studentsList = allUsers.filter(u => u.role === 'student');
       
-      setTaskSubmissions(submissions);
+      setTaskSubmissions(submissions.filter(s => s.status === 'pending'));
       setStudents(studentsList);
       setDashboardStats({
         totalStudents: studentsList.length,
-        pendingSubmissions: submissions.length,
-        approvedTasks: statsRes.data?.approvedTasks || 0,
-        totalPoints: statsRes.data?.totalPointsAwarded || 0
+        pendingSubmissions: submissions.filter(s => s.status === 'pending').length,
+        approvedTasks: submissions.filter(s => s.status === 'approved').length,
+        totalPoints: studentsList.reduce((sum, s) => sum + (s.points || 0), 0)
       });
       
       await refreshUserData();
     } catch (error) {
       console.error('Error loading teacher data:', error);
-      setTaskSubmissions(mockSubmissions);
-      setStudents(mockStudents);
+      setTaskSubmissions([]);
+      setStudents([]);
       setDashboardStats({
-        totalStudents: mockStudents.length,
-        pendingSubmissions: mockSubmissions.length,
-        approvedTasks: 15,
-        totalPoints: 750
+        totalStudents: 0,
+        pendingSubmissions: 0,
+        approvedTasks: 0,
+        totalPoints: 0
       });
     } finally {
       setLoading(false);
@@ -84,55 +91,18 @@ const TeacherDashboard = () => {
     }
   };
 
-  const mockSubmissions = [
-    {
-      _id: '1',
-      student: { name: 'Alice Green', email: 'alice@student.com' },
-      task: { title: 'Plant a Tree', points: 50 },
-      submittedAt: new Date('2024-01-15'),
-      proofUrl: '/uploads/tree-planting.jpg',
-      description: 'I planted an oak tree in my backyard with my family.'
-    },
-    {
-      _id: '2',
-      student: { name: 'Bob Smith', email: 'bob@student.com' },
-      task: { title: 'Energy Audit', points: 40 },
-      submittedAt: new Date('2024-01-14'),
-      proofUrl: '/uploads/energy-audit.pdf',
-      description: 'Completed home energy audit and identified 5 ways to save energy.'
-    }
-  ];
 
-  const mockStudents = [
-    {
-      _id: '1',
-      name: 'Alice Green',
-      email: 'alice@student.com',
-      points: 450,
-      level: 'Sapling',
-      completedTasks: 8,
-      completedLessons: 12
-    },
-    {
-      _id: '2',
-      name: 'Bob Smith',
-      email: 'bob@student.com',
-      points: 320,
-      level: 'Seedling',
-      completedTasks: 5,
-      completedLessons: 8
-    }
-  ];
 
   const handleApproveSubmission = async (submissionId) => {
     try {
       await safeApiCall(
-        () => apiService.task.approveSubmission(submissionId),
+        () => apiService.teacher.approveSubmission(submissionId),
         { success: true }
       );
       
       setTaskSubmissions(prev => prev.filter(sub => sub._id !== submissionId));
       alert('Task submission approved successfully!');
+      loadTeacherData();
     } catch (error) {
       console.error('Error approving submission:', error);
       alert('Error approving submission. Please try again.');
@@ -145,12 +115,13 @@ const TeacherDashboard = () => {
 
     try {
       await safeApiCall(
-        () => apiService.task.rejectSubmission(submissionId, feedback),
+        () => apiService.teacher.rejectSubmission(submissionId, feedback),
         { success: true }
       );
       
       setTaskSubmissions(prev => prev.filter(sub => sub._id !== submissionId));
       alert('Task submission rejected with feedback.');
+      loadTeacherData();
     } catch (error) {
       console.error('Error rejecting submission:', error);
       alert('Error rejecting submission. Please try again.');
@@ -161,14 +132,11 @@ const TeacherDashboard = () => {
     e.preventDefault();
     
     const testData = {
-      ...newTest,
-      badge: {
-        name: newTest.badgeName || `${newTest.title} Master`,
-        description: newTest.badgeDescription || `Earned by scoring 80% or higher on ${newTest.title}`,
-        icon: '🏆',
-        minScore: newTest.minScore || 80,
-        maxAttempts: newTest.maxAttempts || 3
-      }
+      title: newTest.title,
+      description: newTest.description,
+      questions: newTest.questions,
+      isActive: true,
+      createdBy: user._id
     };
     
     try {
@@ -187,8 +155,8 @@ const TeacherDashboard = () => {
         maxAttempts: 3
       });
       setShowCreateTest(false);
-      alert('Test created successfully with badge reward!');
-      loadTeacherData(); // Refresh data
+      alert('Test created successfully!');
+      loadTeacherData();
     } catch (error) {
       console.error('Error creating test:', error);
       alert('Error creating test. Please try again.');
@@ -251,7 +219,7 @@ const TeacherDashboard = () => {
             <FiAward />
           </div>
           <div className="stat-content">
-            <h3>{students.reduce((sum, s) => sum + s.completedTasks, 0)}</h3>
+            <h3>{students.reduce((sum, s) => sum + (s.completedTasks || 0), 0)}</h3>
             <p>Tasks Completed</p>
           </div>
         </div>
@@ -262,9 +230,9 @@ const TeacherDashboard = () => {
         {taskSubmissions.slice(0, 3).map(submission => (
           <div key={submission._id} className="submission-item">
             <div className="submission-info">
-              <strong>{submission.student.name}</strong> submitted {submission.task.title}
+              <strong>{submission.student?.name || 'Unknown Student'}</strong> submitted {submission.task?.title || 'Unknown Task'}
               <span className="submission-time">
-                {new Date(submission.submittedAt).toLocaleDateString()}
+                {submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : 'Unknown Date'}
               </span>
             </div>
             <div className="submission-actions">
@@ -307,19 +275,19 @@ const TeacherDashboard = () => {
               <div className="submission-header">
                 <div className="student-info">
                   <div className="student-avatar">
-                    {submission.student.name.charAt(0).toUpperCase()}
+                    {submission.student?.name?.charAt(0)?.toUpperCase() || 'S'}
                   </div>
                   <div className="student-details">
-                    <h4>{submission.student.name}</h4>
-                    <p>{submission.student.email}</p>
+                    <h4>{submission.student?.name || 'Unknown Student'}</h4>
+                    <p>{submission.student?.email || 'No email'}</p>
                     <span className="submission-date">
                       Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
                 <div className="task-info">
-                  <h5>{submission.task.title}</h5>
-                  <span className="points-badge">{submission.task.points} points</span>
+                  <h5>{submission.task?.title || 'Unknown Task'}</h5>
+                  <span className="points-badge">{submission.task?.points || 0} points</span>
                 </div>
               </div>
 
@@ -388,20 +356,20 @@ const TeacherDashboard = () => {
                 <td>
                   <div className="student-cell">
                     <div className="student-avatar small">
-                      {student.name.charAt(0).toUpperCase()}
+                      {student.name?.charAt(0)?.toUpperCase() || 'S'}
                     </div>
-                    <span>{student.name}</span>
+                    <span>{student.name || 'Unknown'}</span>
                   </div>
                 </td>
-                <td>{student.email}</td>
-                <td>{student.points}</td>
+                <td>{student.email || 'No email'}</td>
+                <td>{student.points || 0}</td>
                 <td>
                   <span className="level-badge">
-                    {student.level}
+                    {student.level || 'Beginner'}
                   </span>
                 </td>
-                <td>{student.completedTasks}</td>
-                <td>{student.completedLessons}</td>
+                <td>{student.completedTasks || 0}</td>
+                <td>{student.completedLessons || 0}</td>
               </tr>
             ))}
           </tbody>
@@ -566,55 +534,42 @@ const TeacherDashboard = () => {
     {
       icon: FiFileText,
       title: 'Reviews',
-      description: `${taskSubmissions.length} pending`,
       action: () => setActiveTab('submissions'),
       color: '#28a745'
     },
     {
       icon: FiUsers,
       title: 'Students',
-      description: `${dashboardStats.totalStudents} total`,
       action: () => setActiveTab('students'),
       color: '#20c997'
     },
     {
       icon: FiPlus,
       title: 'Create Test',
-      description: 'New assessment',
       action: () => setShowCreateTest(true),
       color: '#ffc107'
     },
     {
       icon: FiAward,
       title: 'Approved',
-      description: `${dashboardStats.approvedTasks} tasks`,
       action: () => setActiveTab('overview'),
       color: '#fd7e14'
     },
     {
       icon: FiTrendingUp,
       title: 'Analytics',
-      description: 'View progress',
       action: () => navigate('/analytics'),
       color: '#6f42c1'
     },
     {
       icon: FiBell,
       title: 'Notifications',
-      description: 'Stay updated',
       action: () => navigate('/notifications'),
       color: '#17a2b8'
     }
   ];
 
-  if (loading) {
-    return (
-      <div className="homepage">
-        <Navbar />
-        <div className="loading-spinner">Loading teacher dashboard...</div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="homepage">
@@ -625,30 +580,6 @@ const TeacherDashboard = () => {
         <div className="hero-content">
           <h1>🌱 Welcome, Teacher {user?.name?.split(' ')[0]}!</h1>
           <p>Guide your students on their environmental journey</p>
-          <div className="user-stats">
-            <div className="stat" onClick={() => setActiveTab('students')}>
-              <span className="stat-number">{dashboardStats.totalStudents}</span>
-              <span className="stat-label">🎆 Students</span>
-            </div>
-            <div className="stat" onClick={() => setActiveTab('submissions')}>
-              <span className="stat-number">{dashboardStats.pendingSubmissions}</span>
-              <span className="stat-label">📝 Pending</span>
-            </div>
-            <div className="stat" onClick={() => setActiveTab('overview')}>
-              <span className="stat-number">{dashboardStats.approvedTasks}</span>
-              <span className="stat-label">✅ Approved</span>
-            </div>
-          </div>
-          
-          <div className="level-progress">
-            <div className="progress-bar-container">
-              <div className="progress-label">Student engagement this month</div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: `${Math.min(100, (dashboardStats.totalPoints / 10))}%`}}></div>
-              </div>
-              <div className="progress-text">{dashboardStats.totalPoints} points awarded</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -667,40 +598,11 @@ const TeacherDashboard = () => {
               <feature.icon />
             </div>
             <h3>{feature.title}</h3>
-            <p>{feature.description}</p>
-            <div className="main-feature-badge">
-              {feature.title === 'Reviews' && '📝'}
-              {feature.title === 'Students' && '👥'}
-              {feature.title === 'Create Test' && '➕'}
-              {feature.title === 'Approved' && '✅'}
-              {feature.title === 'Analytics' && '📈'}
-              {feature.title === 'Notifications' && '🔔'}
-            </div>
           </div>
         ))}
       </div>
 
-      <div className="quick-actions">
-        <h2>🚀 Empower Your Students!</h2>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => setActiveTab('submissions')}
-          >
-            📝 Review Submissions
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => setShowCreateTest(true)}
-          >
-            ➕ Create Assessment
-          </button>
-        </div>
-        
-        <div className="motivational-text">
-          <p>🌍 Inspiring the next generation of eco-warriors! 🌱</p>
-        </div>
-      </div>
+
       
       {/* Render modals and detailed views when needed */}
       {activeTab === 'submissions' && renderSubmissions()}

@@ -5,52 +5,116 @@
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(24px);
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.side-panel:hover {
+  transform: translateY(-50%) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .panel-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   background: rgba(255, 255, 255, 0.1);
-  min-width: 60px;
+  min-width: 64px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+
+
+
+.panel-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.panel-item:hover::before {
+  left: 100%;
 }
 
 .panel-item:hover {
   background: var(--item-color);
   color: white;
-  transform: scale(1.05);
+  transform: scale(1.08) translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.panel-item:active {
+  transform: scale(0.95);
+  transition: all 0.1s ease;
 }
 
 .panel-icon {
   font-size: 1.5rem;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
+}
+
+.panel-item:hover .panel-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .panel-label {
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+}
+
+
+
+.panel-item:hover .panel-label {
+  transform: translateY(-1px);
+  font-weight: 700;
 }
 
 [data-theme="dark"] .side-panel {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(71, 85, 105, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .side-panel:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .panel-item {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: rgba(71, 85, 105, 0.2);
+  color: #f1f5f9;
+}
+
+
+
+[data-theme="dark"] .panel-item::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+[data-theme="dark"] .panel-item:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 768px) {
@@ -64,32 +128,44 @@
     flex-direction: row;
     justify-content: space-around;
     border-radius: 0;
-    padding: 10px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(24px);
+    border-top: 2px solid rgba(16, 185, 129, 0.2);
     border-left: none;
     border-right: none;
     border-bottom: none;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .side-panel:hover {
+    transform: none;
   }
 
   .panel-item {
     min-width: auto;
     flex: 1;
-    padding: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .panel-item:hover {
+    transform: scale(1.05) translateY(-3px);
   }
 
   .panel-icon {
-    font-size: 1.3rem;
-    margin-bottom: 3px;
+    font-size: 1.4rem;
+    margin-bottom: 4px;
   }
 
   .panel-label {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 600;
   }
 
   [data-theme="dark"] .side-panel {
-    background: rgba(0, 0, 0, 0.95);
-    border-top-color: rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.95);
+    border-top-color: rgba(71, 85, 105, 0.3);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
   }
 }

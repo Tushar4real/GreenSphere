@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Quiz = require('../models/Quiz');
 const UserBadge = require('../models/UserBadge');
+const TaskSubmission = require('../models/TaskSubmission');
 
 const TEACHER_CODES = {
   'TEACH2024': 'General Teaching',
@@ -149,5 +150,71 @@ exports.requestTeacherRole = async (req, res) => {
   } catch (error) {
     console.error('Teacher request error:', error);
     res.status(500).json({ error: 'Failed to submit teacher request' });
+  }
+};
+
+exports.getPendingSubmissions = async (req, res) => {
+  try {
+    const submissions = await TaskSubmission.find({ status: 'pending' })
+      .populate('student', 'name email')
+      .populate('task', 'title points')
+      .sort({ submittedAt: -1 });
+    
+    res.json(submissions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.approveSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const submission = await TaskSubmission.findById(id)
+      .populate('student')
+      .populate('task');
+    
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+    
+    submission.status = 'approved';
+    submission.reviewedAt = new Date();
+    submission.reviewedBy = req.user.userId;
+    await submission.save();
+    
+    // Award points to student
+    const student = await User.findById(submission.student._id);
+    if (student) {
+      student.points += submission.task.points;
+      student.totalTasksCompleted += 1;
+      await student.save();
+    }
+    
+    res.json({ message: 'Submission approved successfully', submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.rejectSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { feedback } = req.body;
+    
+    const submission = await TaskSubmission.findById(id);
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+    
+    submission.status = 'rejected';
+    submission.feedback = feedback;
+    submission.reviewedAt = new Date();
+    submission.reviewedBy = req.user.userId;
+    await submission.save();
+    
+    res.json({ message: 'Submission rejected with feedback', submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

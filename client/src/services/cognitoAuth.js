@@ -1,117 +1,85 @@
-import { 
-  CognitoIdentityProviderClient, 
-  SignUpCommand, 
-  InitiateAuthCommand, 
-  ConfirmSignUpCommand,
-  ForgotPasswordCommand,
-  ConfirmForgotPasswordCommand
-} from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoUserPool, CognitoUser, AuthenticationDetails, CognitoUserAttribute } from 'amazon-cognito-identity-js';
 
-class CognitoAuthService {
-  constructor() {
-    this.client = null;
-    this.isConfigured = false;
-    this.init();
-  }
+const poolData = {
+  UserPoolId: process.env.REACT_APP_COGNITO_USER_POOL_ID,
+  ClientId: process.env.REACT_APP_COGNITO_CLIENT_ID,
+};
 
-  init() {
-    const userPoolId = process.env.REACT_APP_COGNITO_USER_POOL_ID;
-    const clientId = process.env.REACT_APP_COGNITO_CLIENT_ID;
-    const region = process.env.REACT_APP_AWS_REGION;
+const userPool = new CognitoUserPool(poolData);
 
-    if (userPoolId && clientId && region && 
-        !userPoolId.includes('xxx') && !clientId.includes('xxx')) {
-      this.client = new CognitoIdentityProviderClient({ region });
-      this.userPoolId = userPoolId;
-      this.clientId = clientId;
-      this.isConfigured = true;
-      console.log('✅ Cognito configured successfully');
-    } else {
-      console.log('⚠️ Cognito not configured, using backend authentication');
-    }
-  }
+const cognitoAuth = {
+  signUp: (email, password, name, role) => {
+    return new Promise((resolve, reject) => {
+      const attributeList = [
+        new CognitoUserAttribute({ Name: 'email', Value: email }),
+        new CognitoUserAttribute({ Name: 'name', Value: name })
+      ];
 
-  async signUp(email, password, name) {
-    if (!this.isConfigured) {
-      throw new Error('Cognito not configured');
-    }
-
-    const username = email.replace(/[@.]/g, '_');
-    const command = new SignUpCommand({
-      ClientId: this.clientId,
-      Username: username,
-      Password: password,
-      UserAttributes: [
-        { Name: 'email', Value: email },
-        { Name: 'name', Value: name }
-      ]
+      userPool.signUp(email, password, attributeList, null, (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
     });
+  },
 
-    return await this.client.send(command);
-  }
+  confirmSignUp: (email, otp) => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
 
-  async confirmSignUp(email, confirmationCode) {
-    if (!this.isConfigured) {
-      throw new Error('Cognito not configured');
-    }
-
-    const username = email.replace(/[@.]/g, '_');
-    const command = new ConfirmSignUpCommand({
-      ClientId: this.clientId,
-      Username: username,
-      ConfirmationCode: confirmationCode
+      cognitoUser.confirmRegistration(otp, true, (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
     });
+  },
 
-    return await this.client.send(command);
-  }
+  signIn: (email, password) => {
+    return new Promise((resolve, reject) => {
+      const authenticationDetails = new AuthenticationDetails({
+        Username: email,
+        Password: password,
+      });
 
-  async signIn(email, password) {
-    if (!this.isConfigured) {
-      throw new Error('Cognito not configured');
-    }
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
 
-    const username = email.replace(/[@.]/g, '_');
-    const command = new InitiateAuthCommand({
-      AuthFlow: 'USER_PASSWORD_AUTH',
-      ClientId: this.clientId,
-      AuthParameters: {
-        USERNAME: username,
-        PASSWORD: password
-      }
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: (result) => {
+          resolve({
+            accessToken: result.getAccessToken().getJwtToken(),
+            idToken: result.getIdToken().getJwtToken(),
+            refreshToken: result.getRefreshToken().getToken(),
+            user: result.getIdToken().payload
+          });
+        },
+        onFailure: (err) => {
+          reject(err);
+        },
+      });
     });
+  },
 
-    return await this.client.send(command);
-  }
+  getCurrentUser: () => {
+    return userPool.getCurrentUser();
+  },
 
-  async forgotPassword(email) {
-    if (!this.isConfigured) {
-      throw new Error('Cognito not configured');
+  signOut: () => {
+    const cognitoUser = userPool.getCurrentUser();
+    if (cognitoUser) {
+      cognitoUser.signOut();
     }
-
-    const username = email.replace(/[@.]/g, '_');
-    const command = new ForgotPasswordCommand({
-      ClientId: this.clientId,
-      Username: username
-    });
-
-    return await this.client.send(command);
   }
+};
 
-  async confirmForgotPassword(email, confirmationCode, newPassword) {
-    if (!this.isConfigured) {
-      throw new Error('Cognito not configured');
-    }
-
-    const username = email.replace(/[@.]/g, '_');
-    const command = new ConfirmForgotPasswordCommand({
-      ClientId: this.clientId,
-      Username: username,
-      ConfirmationCode: confirmationCode,
-      Password: newPassword
-    });
-
-    return await this.client.send(command);
-  }
-}
-
-export default new CognitoAuthService();
+export { cognitoAuth };

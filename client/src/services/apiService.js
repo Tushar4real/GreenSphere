@@ -14,6 +14,7 @@ export const userService = {
   updateProfile: (data) => api.put('/users/profile', data),
   getStats: () => api.get('/users/stats'),
   getUsers: () => api.get('/users'),
+  createUser: (data) => api.post('/users', data),
   updateUser: (id, data) => api.put(`/users/${id}`, data),
   deleteUser: (id) => api.delete(`/users/${id}`),
   awardBonusPoints: (id, data) => api.post(`/users/${id}/bonus-points`, data)
@@ -72,26 +73,23 @@ export const competitionService = {
 
 // Admin Services
 export const adminService = {
-  getTeacherRequests: () => api.get('/roles/teacher-requests'),
-  approveTeacherRequest: (userId, data) => api.patch(`/roles/teacher-requests/${userId}`, data),
-  addTeacher: (data) => api.post('/roles/add-teacher', data),
-  getAllUsers: () => api.get('/roles/users'),
-  changeUserRole: (userId, data) => api.patch(`/roles/change-role/${userId}`, data)
+  getTeacherRequests: () => api.get('/users'),
+  approveTeacherRequest: (userId, data) => api.put(`/users/${userId}`, data),
+  addTeacher: (data) => api.post('/users', data),
+  getAllUsers: () => api.get('/users'),
+  changeUserRole: (userId, data) => api.put(`/users/${userId}`, data)
 };
 
 // Teacher Services
 export const teacherService = {
-  getPendingSubmissions: () => api.get('/tasks/pending'),
-  approveSubmission: (id) => api.put(`/tasks/review/${id}`, { status: 'approved' }),
-  rejectSubmission: (id, feedback) => api.put(`/tasks/review/${id}`, { status: 'rejected', feedback }),
+  getPendingSubmissions: () => api.get('/teacher/submissions/pending'),
+  approveSubmission: (id) => api.patch(`/teacher/submissions/${id}/approve`),
+  rejectSubmission: (id, feedback) => api.patch(`/teacher/submissions/${id}/reject`, { feedback }),
   getStudents: () => api.get('/teacher/students'),
   getStudentCount: () => api.get('/teacher/students/count'),
   createQuiz: (data) => api.post('/teacher/quiz', data),
   getQuizzes: () => api.get('/teacher/quizzes'),
-  getRealWorldSubmissions: () => api.get('/real-world-tasks/submissions'),
-  reviewRealWorldSubmission: (id, data) => api.patch(`/real-world-tasks/submissions/${id}/review`, data),
-  requestTeacherRole: (data) => api.post('/teacher/request-role', data),
-  getTeacherRequests: () => api.get('/teacher/requests')
+  getTeacherStats: () => api.get('/users/stats')
 };
 
 // Real World Tasks Services

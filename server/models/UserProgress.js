@@ -80,4 +80,4 @@ userProgressSchema.methods.updateStreak = function() {
   this.lastActivityDate = today;
 };
 
-module.exports = mongoose.model('UserProgress', userProgressSchema);
+module.exports = mongoose.models.UserProgress || mongoose.model('UserProgress', userProgressSchema);

@@ -21,4 +21,9 @@ router.post('/request-role', auth, teacherController.requestTeacherRole);
 // Get teacher requests (admin only)
 router.get('/requests', auth, teacherController.getTeacherRequests);
 
+// Task submission management
+router.get('/submissions/pending', auth, teacherController.getPendingSubmissions);
+router.patch('/submissions/:id/approve', auth, teacherController.approveSubmission);
+router.patch('/submissions/:id/reject', auth, teacherController.rejectSubmission);
+
 module.exports = router;

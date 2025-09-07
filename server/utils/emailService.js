@@ -35,7 +35,7 @@ const sendOTPEmail = async (email, otpCode, name = 'User') => {
     await Promise.race([
       transporter.verify(),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Email verification timeout')), 5000)
+        setTimeout(() => reject(new Error('Email verification timeout')), 5001)
       )
     ]);
     
@@ -87,7 +87,7 @@ const sendOTPEmail = async (email, otpCode, name = 'User') => {
             </div>
             
             <div class="footer">
-              <p>© 2024 GreenSphere Platform. Making environmental education engaging!</p>
+              <p>© 2025 GreenSphere Platform. Making environmental education engaging!</p>
               <p style="font-size: 12px;">This is an automated email. Please do not reply.</p>
             </div>
           </div>

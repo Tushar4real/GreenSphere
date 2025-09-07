@@ -10,6 +10,8 @@
     "seed-data": "node seedData.js",
     "seed-mock": "node seedMockData.js",
     "seed-lessons": "node seedRealLessons.js",
+    "seed-gamification": "node scripts/seedGamificationData.js",
+    "make-admin": "node scripts/makeAdmin.js",
     "test-auth": "node scripts/testAuth.js"
   },
   "dependencies": {

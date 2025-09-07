@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiAward, FiStar, FiTrendingUp, FiTarget } from 'react-icons/fi';
+import { FiAward, FiStar, FiTrendingUp, FiTarget, FiLock } from 'react-icons/fi';
 import './Badge.css';
 
 const Badge = ({ badge, earned = false, showAnimation = false }) => {
@@ -39,7 +39,11 @@ const Badge = ({ badge, earned = false, showAnimation = false }) => {
         </div>
       </div>
       
-      {!earned && <div className="badge-overlay">🔒</div>}
+      {!earned && (
+        <div className="badge-overlay">
+          <FiLock className="lock-icon" />
+        </div>
+      )}
       {showAnimation && <div className="badge-glow"></div>}
     </div>
   );

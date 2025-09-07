@@ -238,7 +238,7 @@ const realWorldTasks = [
       description: 'Inspiring voice for environmental change and sustainable future'
     },
     requirements: [
-      'Reach minimum 5000 people',
+      'Reach minimum 5001 people',
       'Organize 10+ community events',
       'Achieve measurable behavior change',
       'Partner with local government/NGOs',
@@ -291,7 +291,7 @@ const impactBadgeThresholds = [
   { points: 1000, name: 'Planet Guardian', icon: '🌍', description: 'Dedicated guardian of our planet' },
   { points: 2000, name: 'Climate Hero', icon: '🦸', description: 'Hero in the fight against climate change' },
   { points: 3500, name: 'Eco Legend', icon: '👑', description: 'Legendary environmental champion' },
-  { points: 5000, name: 'Earth Savior', icon: '✨', description: 'Ultimate savior of our planet' }
+  { points: 5001, name: 'Earth Savior', icon: '✨', description: 'Ultimate savior of our planet' }
 ];
 
 const seedRealWorldTasks = async () => {

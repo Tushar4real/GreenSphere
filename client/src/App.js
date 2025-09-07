@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 
 // Pages
 import Login from './pages/Login/Login';
@@ -21,10 +22,18 @@ import CommunityPage from './pages/CommunityPage/CommunityPage';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
 import News from './pages/News/News';
 import Badges from './pages/Badges/Badges';
+import Progress from './pages/Progress/Progress';
 import ProfileSetup from './components/ProfileSetup/ProfileSetup';
+import About from './pages/About/About';
+import Help from './pages/Help/Help';
+import Privacy from './pages/Privacy/Privacy';
+import Terms from './pages/Terms/Terms';
+import Contact from './pages/Contact/Contact';
+import FAQ from './pages/FAQ/FAQ';
 
 // Global Styles
 import './App.css';
+import './styles/design-system.css';
 import './styles/theme-utils.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -43,6 +52,21 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   return children;
+};
+
+const DashboardRouter = () => {
+  const { user } = useAuth();
+  
+  if (user?.role === 'admin' || user?.email === 'tchandravadiya01@gmail.com') {
+    return <AdminDashboard />;
+  }
+  if (user?.role === 'teacher') {
+    return <TeacherDashboard />;
+  }
+  if (user?.role === 'student') {
+    return <StudentDashboard />;
+  }
+  return <HomePage />;
 };
 
 const AppRoutes = () => {
@@ -68,6 +92,24 @@ const AppRoutes = () => {
       <Route path="/admin" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <AdminDashboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-dashboard" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/student-dashboard" element={
+        <ProtectedRoute allowedRoles={['student']}>
+          <StudentDashboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/teacher-dashboard" element={
+        <ProtectedRoute allowedRoles={['teacher']}>
+          <TeacherDashboard />
         </ProtectedRoute>
       } />
       
@@ -143,12 +185,22 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
+      <Route path="/progress" element={
+        <ProtectedRoute>
+          <Progress />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/about" element={<About />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/faq" element={<FAQ />} />
+      
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          {user?.role === 'student' && <StudentDashboard />}
-          {user?.role === 'teacher' && <TeacherDashboard />}
-          {user?.role === 'admin' && <AdminDashboard />}
-          {!user?.role && <HomePage />}
+          <DashboardRouter />
         </ProtectedRoute>
       } />
       
@@ -184,16 +236,18 @@ const ProfileSetupModal = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-          <div className="App">
-            <AppRoutes />
-            <ProfileSetupModal />
-          </div>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+            <div className="App">
+              <AppRoutes />
+              <ProfileSetupModal />
+            </div>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

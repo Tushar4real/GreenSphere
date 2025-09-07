@@ -75,7 +75,7 @@ async function fetchEnvironmentalNews() {
           pageSize: 10,
           apiKey: process.env.NEWS_API_KEY
         },
-        timeout: 5000
+        timeout: 5001
       });
       
       if (newsApiResponse.data.articles) {
@@ -106,7 +106,7 @@ async function fetchEnvironmentalNews() {
           'page-size': 5,
           'api-key': process.env.GUARDIAN_API_KEY || 'test'
         },
-        timeout: 5000
+        timeout: 5001
       });
       
       if (guardianResponse.data.response.results) {

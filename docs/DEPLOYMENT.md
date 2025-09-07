@@ -102,7 +102,7 @@
 
    **Server .env file:**
    ```env
-   PORT=5000
+   PORT=5001
    MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/greensphere
    JWT_SECRET=your-super-secret-jwt-key-here
    
@@ -123,7 +123,7 @@
 
    **Client .env file:**
    ```env
-   REACT_APP_API_URL=http://your-ec2-public-ip:5000/api
+   REACT_APP_API_URL=http://your-ec2-public-ip:5001/api
    REACT_APP_AWS_REGION=us-east-1
    REACT_APP_COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
    REACT_APP_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -171,7 +171,7 @@
 
        # Proxy API requests to Node.js server
        location /api {
-           proxy_pass http://localhost:5000;
+           proxy_pass http://localhost:5001;
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection 'upgrade';
@@ -260,7 +260,7 @@ sudo ufw enable
 
 4. **Access Application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
+   - Backend API: http://localhost:5001
 
 ### Docker Deployment (Alternative)
 
@@ -271,7 +271,7 @@ sudo ufw enable
    COPY package*.json ./
    RUN npm install
    COPY . .
-   EXPOSE 5000
+   EXPOSE 5001
    CMD ["npm", "start"]
    ```
 
@@ -297,7 +297,7 @@ sudo ufw enable
      server:
        build: ./server
        ports:
-         - "5000:5000"
+         - "5001:5001"
        environment:
          - NODE_ENV=production
      client:

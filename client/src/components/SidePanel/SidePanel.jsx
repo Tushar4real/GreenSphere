@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBell, FiTrendingUp, FiFileText } from 'react-icons/fi';
+import { FiBell, FiTrendingUp, FiFileText, FiUser } from 'react-icons/fi';
 import './SidePanel.css';
 
 const SidePanel = () => {
@@ -24,6 +24,12 @@ const SidePanel = () => {
       title: 'News',
       path: '/news',
       color: '#28a745'
+    },
+    {
+      icon: FiUser,
+      title: 'Progress',
+      path: '/progress',
+      color: '#10b981'
     }
   ];
 

@@ -545,13 +545,128 @@
   border-bottom-color: #404040;
 }
 
+/* Quizzes Section */
+.quizzes-section {
+  padding: 20px 0;
+}
+
+.quizzes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.quiz-preview {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.quiz-preview:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.quiz-preview h3 {
+  color: var(--light-text);
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.quiz-preview p {
+  color: var(--neutral-gray);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.quiz-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.quiz-stats span {
+  background: #f7fafc;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #4a5568;
+}
+
+.quiz-stats .completed {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.take-quiz-btn {
+  background: #e83e8c;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.take-quiz-btn:hover:not(:disabled) {
+  background: #d91a72;
+}
+
+.take-quiz-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Dark Mode Enhancements */
+[data-theme="dark"] .tab {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  background: transparent;
+}
+
+[data-theme="dark"] .tab.active,
+[data-theme="dark"] .tab:hover {
+  background: var(--primary-green);
+  color: white;
+}
+
+[data-theme="dark"] .quiz-preview {
+  background: #2a2a2a;
+  border-color: #404040;
+}
+
+[data-theme="dark"] .quiz-preview h3 {
+  color: white;
+}
+
+[data-theme="dark"] .quiz-preview p {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .quiz-stats span {
+  background: #404040;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .quiz-stats .completed {
+  background: #22543d;
+  color: #c6f6d5;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .tasks-container {
     padding: 1rem;
   }
   
-  .tasks-grid {
+  .tasks-grid,
+  .quizzes-grid {
     grid-template-columns: 1fr;
   }
   
@@ -578,6 +693,17 @@
   
   .badge-preview {
     flex-direction: column;
+    text-align: center;
+  }
+  
+  .tasks-tabs {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .tab {
+    width: 100%;
+    max-width: 200px;
     text-align: center;
   }
 }

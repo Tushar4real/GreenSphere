@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiBookOpen, FiAward, FiUsers, FiTrendingUp, FiTarget, FiSettings, FiBell } from 'react-icons/fi';
+import { FiBookOpen, FiAward, FiUsers, FiTrendingUp, FiTarget, FiSettings, FiBell, FiStar, FiZap, FiHeart, FiGlobe, FiDroplet, FiSun } from 'react-icons/fi';
+import { HiOutlineSparkles, HiOutlineAcademicCap, HiOutlineFire, HiOutlineClipboardCheck } from 'react-icons/hi';
 import Navbar from '../../components/Navbar/Navbar';
 import SidePanel from '../../components/SidePanel/SidePanel';
 import ScrollToTop from '../../components/ScrollToTop/ScrollToTop';
@@ -95,44 +96,8 @@ const HomePage = () => {
   return (
     <div className="homepage">
       <Navbar />
-      <div className="floating-elements">
-        <div className="floating-emoji" style={{top: '10%', left: '10%', animationDelay: '0s'}}>🌱</div>
-        <div className="floating-emoji" style={{top: '20%', right: '15%', animationDelay: '2s'}}>🌍</div>
-        <div className="floating-emoji" style={{bottom: '30%', left: '20%', animationDelay: '4s'}}>♻️</div>
-        <div className="floating-emoji" style={{bottom: '20%', right: '10%', animationDelay: '6s'}}>🌿</div>
-        <div className="floating-emoji" style={{top: '50%', left: '5%', animationDelay: '8s'}}>💧</div>
-        <div className="floating-emoji" style={{top: '70%', right: '5%', animationDelay: '10s'}}>☀️</div>
-      </div>
-      <div className="hero-section">
-        <div className="hero-content">
-          <h1>Welcome back, {user?.name || 'User'}!</h1>
-          <p>Learn, Act, and Save Our Planet</p>
-          <div className="user-stats">
-            <div className="stat" onClick={() => alert('You have ' + (user?.points || 0) + ' eco-points! Keep learning to earn more!')}>
-              <span className="stat-number">{user?.points || 0}</span>
-              <span className="stat-label">Points</span>
-            </div>
-            <div className="stat" onClick={() => alert('You are at ' + (user?.level || 'Beginner') + ' level! Complete more tasks to level up!')}>
-              <span className="stat-number">{user?.level || 'Beginner'}</span>
-              <span className="stat-label">Level</span>
-            </div>
-            <div className="stat" onClick={() => alert('Amazing! You have a ' + (user?.streakDays || 0) + ' day streak! Keep it up!')}>
-              <span className="stat-number">{user?.streakDays || 0}</span>
-              <span className="stat-label">Streak</span>
-            </div>
-          </div>
-          
-          <div className="level-progress">
-            <div className="progress-bar-container">
-              <div className="progress-label">Progress to next level</div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: `${Math.min(100, ((user?.points || 0) % 100))}%`}}></div>
-              </div>
-              <div className="progress-text">{(user?.points || 0) % 100}/100 XP</div>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
 
       <div className="main-features-grid">
         {mainFeatures.map((feature, index) => (
@@ -156,54 +121,13 @@ const HomePage = () => {
               <feature.icon />
             </div>
             <h3>{feature.title}</h3>
-            <p>{feature.description}</p>
-            <div className="main-feature-badge">
-              {feature.title === 'Learn' && '📚'}
-              {feature.title === 'Tasks' && '🎯'}
-              {feature.title === 'Badges' && '🏆'}
-              {feature.title === 'Community' && '🌍'}
-              {feature.title === 'Compete' && '🏅'}
-              {feature.title === 'Exams' && '📝'}
-            </div>
+            <p className="feature-description">{feature.description}</p>
+
           </div>
         ))}
       </div>
 
-      <div className="quick-actions">
-        <h2>🚀 Ready to Save the Planet?</h2>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => {
-              const btn = event.target;
-              btn.innerHTML = '🎉 Let\'s Go!';
-              setTimeout(() => {
-                btn.innerHTML = '📚 Start Learning';
-                navigate('/lessons');
-              }, 500);
-            }}
-          >
-            📚 Start Learning
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => {
-              const btn = event.target;
-              btn.innerHTML = '🌱 Amazing!';
-              setTimeout(() => {
-                btn.innerHTML = '🎯 Take Action';
-                navigate('/real-world-tasks');
-              }, 500);
-            }}
-          >
-            🎯 Take Action
-          </button>
-        </div>
-        
-        <div className="motivational-text">
-          <p key={currentQuote} className="rotating-quote">{motivationalQuotes[currentQuote]}</p>
-        </div>
-      </div>
+
       
       <SidePanel />
       <ScrollToTop />

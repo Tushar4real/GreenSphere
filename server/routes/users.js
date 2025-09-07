@@ -25,4 +25,10 @@ router.get('/class/:className', auth, userController.getClassStudents);
 // Award bonus points (teacher/admin only)
 router.post('/:id/bonus-points', auth, userController.awardBonusPoints);
 
+// Create user (admin only)
+router.post('/', auth, userController.createUser);
+
+// Update user (admin only)
+router.put('/:id', auth, userController.updateUser);
+
 module.exports = router;

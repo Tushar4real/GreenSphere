@@ -42,46 +42,53 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     loadDashboardData();
+    
+    // Set up real-time data refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [usersRes, requestsRes, statsRes] = await Promise.all([
+      const [usersRes, lessonsRes, tasksRes, badgesRes] = await Promise.all([
         apiService.admin.getAllUsers().catch(() => ({ data: [] })),
-        apiService.admin.getTeacherRequests().catch(() => ({ data: [] })),
-        apiService.analytics.getDashboardStats('7d').catch(() => ({ data: { stats: {} } }))
+        apiService.lesson.getLessons().catch(() => ({ data: [] })),
+        apiService.realWorldTask.getTasks().catch(() => ({ data: [] })),
+        apiService.badge.getBadges().catch(() => ({ data: [] }))
       ]);
       
       const usersList = usersRes.data || [];
-      const requests = requestsRes.data || [];
+      const teacherRequests = usersList.filter(u => u.teacherRequest && u.teacherRequest.status === 'pending');
       
       setUsers(usersList);
-      setTeacherRequests(requests);
+      setTeacherRequests(teacherRequests);
       
-      const realStats = statsRes.data?.stats || {};
       setStats({
-        totalUsers: usersList.length || realStats.totalUsers || 156,
-        totalTeachers: usersList.filter(u => u.role === 'teacher').length || realStats.totalTeachers || 12,
-        totalStudents: usersList.filter(u => u.role === 'student').length || realStats.totalStudents || 144,
-        totalLessons: realStats.totalLessons || 25,
-        totalTasks: realStats.totalTasks || 18,
-        totalBadges: realStats.totalBadges || 15,
-        activeCompetitions: realStats.activeCompetitions || 3,
-        pendingRequests: requests.length
+        totalUsers: usersList.length,
+        totalTeachers: usersList.filter(u => u.role === 'teacher').length,
+        totalStudents: usersList.filter(u => u.role === 'student').length,
+        totalLessons: lessonsRes.data?.length || 0,
+        totalTasks: tasksRes.data?.length || 0,
+        totalBadges: badgesRes.data?.length || 0,
+        activeCompetitions: 0,
+        pendingRequests: teacherRequests.length
       });
       
       await refreshUserData();
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setStats({
-        totalUsers: 156,
-        totalTeachers: 12,
-        totalStudents: 144,
-        totalLessons: 25,
-        totalTasks: 18,
-        totalBadges: 15,
-        activeCompetitions: 3,
+        totalUsers: 0,
+        totalTeachers: 0,
+        totalStudents: 0,
+        totalLessons: 0,
+        totalTasks: 0,
+        totalBadges: 0,
+        activeCompetitions: 0,
         pendingRequests: 0
       });
     } finally {
@@ -91,7 +98,10 @@ const AdminDashboard = () => {
 
   const handleApproveTeacher = async (userId, approved) => {
     try {
-      await apiService.admin.approveTeacherRequest(userId, { approved });
+      const updateData = approved ? 
+        { role: 'teacher', 'teacherRequest.status': 'approved' } : 
+        { 'teacherRequest.status': 'rejected' };
+      await apiService.admin.changeUserRole(userId, updateData);
       loadDashboardData();
     } catch (error) {
       console.error('Error processing teacher request:', error);
@@ -100,7 +110,7 @@ const AdminDashboard = () => {
 
   const handleChangeUserRole = async (userId, newRole) => {
     try {
-      await apiService.admin.changeUserRole(userId, { role: newRole });
+      await apiService.user.updateUser(userId, { role: newRole });
       loadDashboardData();
     } catch (error) {
       console.error('Error changing user role:', error);
@@ -151,55 +161,42 @@ const AdminDashboard = () => {
     {
       icon: FiUsers,
       title: 'Users',
-      description: `${stats.totalUsers} total`,
       action: () => setActiveTab('users'),
       color: '#28a745'
     },
     {
       icon: FiBookOpen,
       title: 'Content',
-      description: `${stats.totalLessons} lessons`,
       action: () => setActiveTab('content'),
       color: '#20c997'
     },
     {
       icon: FiUserCheck,
       title: 'Requests',
-      description: `${stats.pendingRequests} pending`,
       action: () => setActiveTab('requests'),
       color: '#ffc107'
     },
     {
       icon: FiBarChart,
       title: 'Analytics',
-      description: 'View insights',
       action: () => setActiveTab('overview'),
       color: '#fd7e14'
     },
     {
       icon: FiSettings,
       title: 'System',
-      description: 'Manage platform',
       action: () => setActiveTab('system'),
       color: '#6f42c1'
     },
     {
       icon: FiAward,
       title: 'Badges',
-      description: `${stats.totalBadges} created`,
       action: () => navigate('/badges'),
       color: '#17a2b8'
     }
   ];
 
-  if (loading) {
-    return (
-      <div className="homepage">
-        <Navbar />
-        <div className="loading-spinner">Loading admin dashboard...</div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="homepage">
@@ -210,30 +207,6 @@ const AdminDashboard = () => {
         <div className="hero-content">
           <h1>🛠️ Admin Control Center</h1>
           <p>Manage your GreenSphere platform</p>
-          <div className="user-stats">
-            <div className="stat" onClick={() => setActiveTab('users')}>
-              <span className="stat-number">{stats.totalUsers}</span>
-              <span className="stat-label">👥 Users</span>
-            </div>
-            <div className="stat" onClick={() => setActiveTab('content')}>
-              <span className="stat-number">{stats.totalLessons}</span>
-              <span className="stat-label">📚 Lessons</span>
-            </div>
-            <div className="stat" onClick={() => setActiveTab('requests')}>
-              <span className="stat-number">{stats.pendingRequests}</span>
-              <span className="stat-label">⏳ Requests</span>
-            </div>
-          </div>
-          
-          <div className="level-progress">
-            <div className="progress-bar-container">
-              <div className="progress-label">Platform growth this month</div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: `${Math.min(100, (stats.totalUsers / 2))}%`}}></div>
-              </div>
-              <div className="progress-text">{stats.totalStudents} active students</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -252,44 +225,15 @@ const AdminDashboard = () => {
               <feature.icon />
             </div>
             <h3>{feature.title}</h3>
-            <p>{feature.description}</p>
-            <div className="main-feature-badge">
-              {feature.title === 'Users' && '👥'}
-              {feature.title === 'Content' && '📚'}
-              {feature.title === 'Requests' && '⏳'}
-              {feature.title === 'Analytics' && '📈'}
-              {feature.title === 'System' && '⚙️'}
-              {feature.title === 'Badges' && '🏆'}
-            </div>
           </div>
         ))}
       </div>
 
-      <div className="quick-actions">
-        <h2>🚀 Platform Management</h2>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary prominent"
-            onClick={() => setActiveTab('users')}
-          >
-            👥 Manage Users
-          </button>
-          <button 
-            className="action-btn secondary prominent"
-            onClick={() => setActiveTab('content')}
-          >
-            📚 Create Content
-          </button>
-        </div>
-        
-        <div className="motivational-text">
-          <p>🌍 Building the future of environmental education! 🌱</p>
-        </div>
-      </div>
+
 
       {/* Render detailed views when needed */}
       {activeTab !== 'overview' && (
-        <div className="dashboard-container" style={{ marginTop: '2rem', background: 'white', borderRadius: '15px', padding: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+        <div className="dashboard-container" style={{ marginTop: '1rem' }}>
           <div className="admin-tabs">
             <button 
               className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
@@ -365,7 +309,7 @@ const AdminDashboard = () => {
         {activeTab === 'users' && (
           <div className="tab-content">
             <div className="section-header">
-              <h3>👥 Real-Time User Management ({users.length} users)</h3>
+              <h3>👥 User Management ({users.length} users)</h3>
               <div className="section-actions">
                 <button className="btn-secondary" onClick={() => setShowBulkUserManager(true)}>
                   <FiUsers /> Bulk Actions
@@ -373,29 +317,6 @@ const AdminDashboard = () => {
                 <button className="btn-primary" onClick={() => setShowAddTeacher(true)}>
                   <FiPlus /> Add Teacher
                 </button>
-              </div>
-            </div>
-            
-            <div className="users-stats">
-              <div className="stat-card">
-                <div className="stat-number">{users.filter(u => u.role === 'student').length}</div>
-                <div className="stat-label">Students</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">{users.filter(u => u.role === 'teacher').length}</div>
-                <div className="stat-label">Teachers</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">{users.filter(u => {
-                  const lastActivity = new Date(u.lastActivity || u.createdAt);
-                  const daysSinceActive = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24);
-                  return daysSinceActive <= 7;
-                }).length}</div>
-                <div className="stat-label">Active (7d)</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">{users.reduce((sum, u) => sum + (u.points || 0), 0)}</div>
-                <div className="stat-label">Total Points</div>
               </div>
             </div>
             

@@ -13,7 +13,12 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
-    return saved ? JSON.parse(saved) : false;
+    if (!saved) return false;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return saved === 'dark';
+    }
   });
 
   useEffect(() => {

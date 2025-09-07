@@ -1,32 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9000/api';
-
-const api = axios.create({
-  baseURL: API_URL,
-});
-
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+import { cognitoAuth } from '../services/cognitoAuth';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -41,24 +15,32 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem('cognitoToken'));
   const [showProfileSetup, setShowProfileSetup] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      verifyToken();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+    checkCurrentUser();
+  }, []);
 
-  const verifyToken = async () => {
+  const checkCurrentUser = async () => {
     try {
-      const response = await api.get('/auth/verify');
-      setUser(response.data.user);
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        // Try to fetch user data
+        try {
+          const response = await api.get('/auth/verify', {
+            headers: { Authorization: `Bearer ${storedToken}` }
+          });
+          setUser(response.data.user);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          localStorage.removeItem('token');
+          setToken(null);
+        }
+      }
     } catch (error) {
-      localStorage.removeItem('token');
-      setToken(null);
+      console.error('Error checking current user:', error);
     } finally {
       setLoading(false);
     }
@@ -66,53 +48,27 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('=== LOGIN DEBUG ===');
-      console.log('API_URL:', API_URL);
-      console.log('Making login request to:', `${API_URL}/auth/login`);
-      console.log('Request data:', { email, password: '***' });
-      
       const response = await api.post('/auth/login', { email, password });
-      console.log('Login response status:', response.status);
-      console.log('Login response data:', response.data);
+      const { token: authToken, user: userData } = response.data;
       
-      const { token: newToken, user: userData } = response.data;
-      
-      if (!newToken || !userData) {
-        throw new Error('Invalid response format');
-      }
-      
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
+      setToken(authToken);
       setUser(userData);
-      
-      console.log('Token stored:', newToken.substring(0, 20) + '...');
-      console.log('User set in context:', userData);
-      console.log('=== LOGIN SUCCESS ===');
+      localStorage.setItem('token', authToken);
       
       return { success: true, user: userData };
     } catch (error) {
-      console.error('=== LOGIN ERROR ===');
-      console.error('Error object:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
-      console.error('Error status:', error.response?.status);
-      console.error('Error data:', error.response?.data);
-      
       return { 
         success: false, 
-        error: error.response?.data?.error || error.message || 'Login failed' 
+        error: error.response?.data?.error || 'Login failed' 
       };
     }
   };
 
   const register = async (userData) => {
     try {
-      console.log('🚀 Starting registration process...');
       const response = await api.post('/auth/register', userData);
-      console.log('✅ Registration initiated:', response.data);
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message || 'Registration initiated!' };
     } catch (error) {
-      console.error('❌ Registration failed:', error.response?.data);
       return { 
         success: false, 
         error: error.response?.data?.error || 'Registration failed. Please try again.' 
@@ -122,12 +78,9 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp, role) => {
     try {
-      console.log('🔐 Verifying OTP...');
       const response = await api.post('/auth/verify-signup-otp', { email, otp, role });
-      console.log('✅ OTP verified:', response.data);
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message || 'Registration completed successfully!' };
     } catch (error) {
-      console.error('❌ OTP verification failed:', error.response?.data);
       return { 
         success: false, 
         error: error.response?.data?.error || 'OTP verification failed. Please try again.' 
@@ -161,8 +114,8 @@ export const AuthProvider = ({ children }) => {
   
   const refreshUserData = async () => {
     try {
-      const response = await api.get('/users/profile');
-      setUser(response.data);
+      const response = await api.get('/auth/verify');
+      setUser(response.data.user);
     } catch (error) {
       console.error('Error refreshing user data:', error);
     }

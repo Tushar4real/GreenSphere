@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import Navbar from '../../components/Navbar/Navbar';
-import { FiUpload, FiCamera, FiAward, FiArrowLeft, FiCheck, FiClock, FiX, FiShare2 } from 'react-icons/fi';
+import QuizCard from '../../components/QuizCard/QuizCard';
+import { FiUpload, FiCamera, FiAward, FiArrowLeft, FiCheck, FiClock, FiX, FiShare2, FiHelpCircle } from 'react-icons/fi';
+import { environmentalQuizzes } from '../../data/quizData';
 import apiService from '../../services/apiService';
 import { triggerPointsAnimation } from '../../utils/pointsAnimation';
 import './RealWorldTasks.css';
 
 const RealWorldTasks = () => {
   const { user, refreshUserData } = useAuth();
+  const { isDark } = useTheme();
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -18,6 +22,8 @@ const RealWorldTasks = () => {
     description: '',
     files: []
   });
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [completedQuizzes, setCompletedQuizzes] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -144,6 +150,12 @@ const RealWorldTasks = () => {
             Available Tasks
           </button>
           <button 
+            className={`tab ${activeTab === 'quizzes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('quizzes')}
+          >
+            <FiHelpCircle /> Quizzes
+          </button>
+          <button 
             className={`tab ${activeTab === 'submissions' ? 'active' : ''}`}
             onClick={() => setActiveTab('submissions')}
           >
@@ -199,6 +211,41 @@ const RealWorldTasks = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'quizzes' && (
+          <div className="quizzes-section">
+            {selectedQuiz ? (
+              <QuizCard 
+                quiz={selectedQuiz} 
+                onComplete={(result) => {
+                  setCompletedQuizzes([...completedQuizzes, result.quizId]);
+                  setSelectedQuiz(null);
+                  alert(`Quiz completed! You earned ${result.points} points.`);
+                }}
+              />
+            ) : (
+              <div className="quizzes-grid">
+                {environmentalQuizzes.map(quiz => (
+                  <div key={quiz.id} className="quiz-preview">
+                    <h3>{quiz.title}</h3>
+                    <p>{quiz.description}</p>
+                    <div className="quiz-stats">
+                      <span>🏆 {quiz.points} points</span>
+                      <span>❓ {quiz.questions.length} questions</span>
+                      {completedQuizzes.includes(quiz.id) && <span className="completed">✅ Completed</span>}
+                    </div>
+                    <button 
+                      className="take-quiz-btn"
+                      onClick={() => setSelectedQuiz(quiz)}
+                    >
+                      {completedQuizzes.includes(quiz.id) ? 'Retake Quiz' : 'Take Quiz'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
